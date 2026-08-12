@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #060912;
+  --color-surface: #0c1222;
+  --color-foreground: #e6ebf5;
+  --color-muted: #93a0bd;
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  --color-accent: #7c5cff;
+  --color-accent-2: #22d3ee;
+  --color-accent-3: #f471b5;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-image:
+    radial-gradient(60rem 60rem at 110% -10%, rgba(124, 92, 255, 0.18), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 10%, rgba(34, 211, 238, 0.14), transparent 60%),
+    radial-gradient(40rem 40rem at 50% 120%, rgba(244, 113, 181, 0.12), transparent 60%);
+  background-attachment: fixed;
+  min-height: 100dvh;
+}
+
+/* Subtle grid overlay used by the hero. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* Glass surface. */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.gradient-text {
+  background: linear-gradient(110deg, var(--color-accent-2), var(--color-accent), var(--color-accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-border {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(34, 211, 238, 0.5), rgba(124, 92, 255, 0.5), rgba(244, 113, 181, 0.5));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.btn-primary {
+  background-image: linear-gradient(110deg, var(--color-accent-2), var(--color-accent));
+  color: #060912;
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 10px 30px -10px rgba(124, 92, 255, 0.6);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px -10px rgba(124, 92, 255, 0.7);
+}
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.field {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  color: var(--color-foreground);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.field::placeholder {
+  color: #6b7794;
+}
+.field:focus {
+  outline: none;
+  border-color: rgba(124, 92, 255, 0.7);
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+}
+.field[aria-invalid="true"] {
+  border-color: rgba(248, 113, 113, 0.7);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+.live-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+@keyframes bar-grow {
+  from { width: 0; }
+}
+.bar-fill {
+  animation: bar-grow 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
