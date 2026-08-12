@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Stats } from "@/lib/stats";
-import type { RegistrationRow, ListResult } from "@/lib/admin";
+import type { ListResult } from "@/lib/admin";
 
 interface Props {
   initialStats: Stats | null;
@@ -14,6 +15,7 @@ const STATUSES = ["CONFIRMED", "PENDING", "CANCELLED", "REJECTED"] as const;
 const MODES = ["ONLINE", "ONSITE"] as const;
 
 export function AdminDashboard({ initialStats, initialList, adminUser }: Props) {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(initialStats);
   const [data, setData] = useState<ListResult | null>(initialList);
   const [search, setSearch] = useState("");
@@ -47,7 +49,7 @@ export function AdminDashboard({ initialStats, initialList, adminUser }: Props) 
     try {
       const res = await fetch(`/api/admin/registrations?${buildQuery()}`, { cache: "no-store" });
       if (res.status === 401) {
-        window.location.href = "/admin/login";
+        router.push("/admin/login");
         return;
       }
       if (!res.ok) throw new Error();
@@ -57,7 +59,7 @@ export function AdminDashboard({ initialStats, initialList, adminUser }: Props) 
     } finally {
       setLoading(false);
     }
-  }, [buildQuery]);
+  }, [buildQuery, router]);
 
   // Refetch when filters/page change (debounced for search).
   useEffect(() => {
@@ -114,7 +116,8 @@ export function AdminDashboard({ initialStats, initialList, adminUser }: Props) 
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
-    window.location.href = "/admin/login";
+    router.push("/admin/login");
+    router.refresh();
   }
 
   return (

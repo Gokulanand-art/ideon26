@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { registerParticipant, RegistrationError } from "@/lib/registration";
+import { registerParticipant } from "@/lib/registration";
 import { getStats } from "@/lib/stats";
 import { freshDb, makeInput } from "./helpers";
 

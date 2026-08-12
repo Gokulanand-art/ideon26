@@ -41,7 +41,7 @@ async function createPgliteAdapter(): Promise<DbAdapter> {
   if (dataDir && dataDir !== ":memory:") {
     mkdirSync(path.resolve(process.cwd(), dataDir), { recursive: true });
   }
-  const db = new PGlite(dataDir, { debug: 0 } as any);
+  const db = new PGlite(dataDir);
 
   const query: QueryFn = async <T = QueryResultRow>(text: string, params?: unknown[]) => {
     const res = await db.query(text, params as unknown[]);

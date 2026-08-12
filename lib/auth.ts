@@ -10,7 +10,7 @@
  * - CSRF: admin state-changing endpoints also verify the Origin header.
  */
 import { scryptSync, randomBytes, timingSafeEqual, createHmac } from "node:crypto";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { config } from "./config";
 
 const COOKIE_NAME = "hk_admin_session";
@@ -67,7 +67,7 @@ export function verifySessionToken(token: string | undefined | null): { u: strin
   if (!token) return null;
   const parts = token.split(".");
   if (parts.length !== 2) return null;
-  const [payload, sig] = parts;
+  const [payload] = parts;
   const expected = sign(payload);
   // Constant-time compare of the full token.
   const a = Buffer.from(token);
@@ -130,9 +130,8 @@ export function verifyAdminCredentials(username: string, password: string): bool
  * CSRF: confirm the request Origin matches the expected host.
  */
 export async function checkOrigin(request: Request): Promise<boolean> {
-  const h = await headers();
-  const origin = h.get("origin");
-  const host = h.get("host");
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host");
   if (!origin) return false;
   try {
     const url = new URL(origin);

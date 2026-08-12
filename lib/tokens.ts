@@ -34,7 +34,7 @@ export function verifyRegistrationToken(
   if (!token) return false;
   const parts = token.split(".");
   if (parts.length !== 2) return false;
-  const [payload, sig] = parts;
+  const [payload] = parts;
   const expected = `${payload}.${b64url(createHmac("sha256", secret()).update(payload).digest())}`;
   const a = Buffer.from(token);
   const b = Buffer.from(expected);

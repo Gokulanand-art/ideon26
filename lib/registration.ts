@@ -92,7 +92,8 @@ export async function registerParticipant(
 ): Promise<RegistrationResult> {
   const db = opts.adapter ?? (await getDb());
 
-  return db.transaction(async (q) => {
+  let result!: RegistrationResult;
+  await db.transaction(async (q) => {
     // 1. Serialize concurrent registration transactions.
     await q(`SELECT pg_advisory_xact_lock($1)`, [REG_LOCK_KEY]);
 
@@ -187,23 +188,24 @@ export async function registerParticipant(
       ],
     );
 
-    const result = insRows[0];
-
-    // Broadcast live stats after a successful commit-boundary insert.
-    if (opts.broadcast !== false) {
-      try {
-        const stats = await getStats(db);
-        broadcastStats(stats);
-      } catch {
-        /* realtime is best-effort */
-      }
-    }
-
-    return result;
+    result = insRows[0];
   }).catch((err: unknown) => {
     // Map database-level errors to friendly RegistrationErrors.
     throw mapDbError(err);
   });
+
+  // Broadcast live stats AFTER the transaction has committed. Doing this
+  // inside the transaction would deadlock PGlite's single-connection queue.
+  if (opts.broadcast !== false) {
+    try {
+      const stats = await getStats(db);
+      broadcastStats(stats);
+    } catch {
+      /* realtime is best-effort */
+    }
+  }
+
+  return result;
 }
 
 /**

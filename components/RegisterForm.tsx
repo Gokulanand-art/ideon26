@@ -260,7 +260,6 @@ export function RegisterForm({ initial }: Props) {
             disabled={submitting || closed}
             checked={form.participation_type === "ONLINE"}
             onChange={() => update("participation_type", "ONLINE")}
-            error={errors.participation_type}
           />
           <ModeOption
             id="mode-onsite"
@@ -272,7 +271,6 @@ export function RegisterForm({ initial }: Props) {
             disabled={submitting || closed}
             checked={form.participation_type === "ONSITE"}
             onChange={() => update("participation_type", "ONSITE")}
-            error={errors.participation_type}
           />
         </div>
         {errors.participation_type && (
@@ -366,7 +364,6 @@ function ModeOption({
   disabled,
   checked,
   onChange,
-  error,
 }: {
   id: string;
   value: string;
@@ -377,7 +374,6 @@ function ModeOption({
   disabled: boolean;
   checked: boolean;
   onChange: () => void;
-  error?: string;
 }) {
   return (
     <label
@@ -398,7 +394,6 @@ function ModeOption({
         checked={checked}
         disabled={disabled || full}
         onChange={onChange}
-        aria-invalid={!!error}
         className="h-4 w-4 accent-indigo-500"
       />
       <span className="text-xl" aria-hidden="true">{icon}</span>
