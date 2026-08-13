@@ -7,6 +7,7 @@ import { broadcastStats } from "./realtime";
 import { getStats } from "./stats";
 import { RegistrationError } from "./registration";
 import type { AdminAction, RegistrationStatus } from "./validation";
+import { updateRegistrationInSheets } from "./sheets";
 
 export interface RegistrationRow {
   id: number;
@@ -372,5 +373,14 @@ export async function runAdminAction(
   } catch {
     /* best-effort */
   }
+
+  // Google Sheets sync (best-effort).
+  updateRegistrationInSheets(result.registration_id, {
+    status: result.status,
+    payment_status: result.payment_status,
+    txn_id: result.txn_id,
+    verified_by: result.verified_by,
+  });
+
   return result;
 }

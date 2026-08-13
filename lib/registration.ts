@@ -34,6 +34,7 @@ import { getDb, type DbAdapter, type QueryFn } from "./db";
 import type { RegisterInput } from "./validation";
 import { broadcastStats } from "./realtime";
 import { getStats } from "./stats";
+import { appendRegistrationToSheets, updateRegistrationInSheets } from "./sheets";
 
 /** Advisory lock key (constant). pg_advisory_xact_lock(bigint). */
 const REG_LOCK_KEY = 0x484b3226; // "HK26"
@@ -323,6 +324,27 @@ export async function registerParticipant(
     }
   }
 
+  // Google Sheets sync (best-effort, never blocks registration).
+  appendRegistrationToSheets({
+    registration_id: result.registration_id,
+    full_name: result.full_name,
+    email: result.email,
+    phone: input.phone,
+    college: input.college,
+    department: input.department,
+    year: input.year,
+    team_name: input.team_name ?? null,
+    team_size: result.team_size,
+    members: result.member_names.join(", "),
+    registration_type: result.registration_type,
+    status: result.status,
+    payment_status: result.payment_status,
+    amount: result.amount,
+    txn_id: null,
+    verified_by: opts.onsite ? opts.adminUser ?? null : null,
+    created_at: result.created_at,
+  });
+
   return result;
 }
 
@@ -380,6 +402,10 @@ export async function submitPaymentTxn(
        RETURNING status AS payment_status`,
       [txnId, reg.id],
     );
+    updateRegistrationInSheets(registrationId, {
+      payment_status: upd[0].payment_status,
+      txn_id: txnId,
+    });
     return { registration_id: registrationId, payment_status: upd[0].payment_status };
   } catch (err) {
     throw mapDbError(err);

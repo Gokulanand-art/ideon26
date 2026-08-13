@@ -68,6 +68,13 @@ export const config = {
 
   // Public site
   publicUrl: env("PUBLIC_URL", "http://localhost:3000"),
+
+  // Google Sheets sync (optional). Enabled when SHEETS_CREDENTIALS_JSON is set.
+  sheetsCredentialsJson: env("SHEETS_CREDENTIALS_JSON", ""),
+  sheetsSpreadsheetId: env("SHEETS_SPREADSHEET_ID", ""),
+  sheetsOwnerEmail: env("SHEETS_OWNER_EMAIL", ""),
+  sheetsTabOnline: env("SHEETS_TAB_ONLINE", "Online"),
+  sheetsTabOnsite: env("SHEETS_TAB_ONSITE", "On-site"),
 } as const;
 
 export type Config = typeof config;
