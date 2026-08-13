@@ -14,17 +14,37 @@ export interface Stats {
   onsiteFull: boolean;
   full: boolean;
   registrationOpen: boolean;
+  /** On-spot channel availability — independent of seats left. */
+  onsiteOpen: boolean;
   updatedAt: string;
 }
 
+// Capacity is measured in PARTICIPANTS (SUM of team_size), never teams.
+// ONLINE seats are consumed only once payment is submitted/verified (SUBMITTED
+// or VERIFIED) — a registration with an unpaid PENDING payment holds no seat.
+// ONSITE seats are consumed at registration (pay at venue, no online payment).
 const COUNTS_SQL = `SELECT
-  count(*) FILTER (WHERE participation_type = 'ONLINE' AND status NOT IN ('CANCELLED','REJECTED'))::int AS online,
-  count(*) FILTER (WHERE participation_type = 'ONSITE' AND status NOT IN ('CANCELLED','REJECTED'))::int AS onsite,
-  count(*) FILTER (WHERE status NOT IN ('CANCELLED','REJECTED'))::int AS total
-  FROM participants`;
+  COALESCE(SUM(p.team_size) FILTER (
+    WHERE p.registration_type = 'ONLINE'
+      AND p.status NOT IN ('CANCELLED','REJECTED')
+      AND EXISTS (SELECT 1 FROM payments pay
+                  WHERE pay.participant_id = p.id
+                    AND pay.status IN ('SUBMITTED','VERIFIED'))
+  ), 0)::int AS online,
+  COALESCE(SUM(p.team_size) FILTER (
+    WHERE p.registration_type = 'ONSITE' AND p.status NOT IN ('CANCELLED','REJECTED')
+  ), 0)::int AS onsite,
+  COALESCE(SUM(p.team_size) FILTER (
+    WHERE p.status NOT IN ('CANCELLED','REJECTED')
+      AND (p.registration_type = 'ONSITE'
+           OR EXISTS (SELECT 1 FROM payments pay
+                      WHERE pay.participant_id = p.id
+                        AND pay.status IN ('SUBMITTED','VERIFIED')))
+  ), 0)::int AS total
+  FROM participants p`;
 
 const SETTINGS_SQL = `SELECT key, value FROM settings
-  WHERE key IN ('online_capacity','onsite_capacity','total_capacity','registration_open')`;
+  WHERE key IN ('online_capacity','onsite_capacity','total_capacity','registration_open','onsite_registration_open')`;
 
 export async function getStats(adapter?: DbAdapter): Promise<Stats> {
   const db = adapter ?? (await getDb());
@@ -38,6 +58,7 @@ export async function getStats(adapter?: DbAdapter): Promise<Stats> {
   const onsiteCapacity = Number(map.get("onsite_capacity") ?? "10");
   const totalCapacity = Number(map.get("total_capacity") ?? "30");
   const registrationOpen = /^(1|true|yes|on)$/i.test(map.get("registration_open") ?? "true");
+  const onsiteOpen = /^(1|true|yes|on)$/i.test(map.get("onsite_registration_open") ?? "false");
 
   const c = countRows[0] ?? { online: 0, onsite: 0, total: 0 };
   const online = Number(c.online);
@@ -62,6 +83,7 @@ export async function getStats(adapter?: DbAdapter): Promise<Stats> {
     onsiteFull: onsite >= onsiteCapacity,
     full: total >= totalCapacity,
     registrationOpen,
+    onsiteOpen,
     updatedAt: new Date().toISOString(),
   };
 }

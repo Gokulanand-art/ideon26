@@ -1,84 +1,68 @@
-"use client";
+import { config } from "@/lib/config";
 
-import { useState } from "react";
-
-const FAQS: { q: string; a: string }[] = [
-  {
-    q: "Who can participate?",
-    a: "Any student or aspiring builder. Whether you're a beginner or a seasoned hacker, you're welcome.",
-  },
-  {
-    q: "Is registration free?",
-    a: "Yes — registration is completely free for all participants.",
-  },
-  {
-    q: "Can I participate online?",
-    a: "Absolutely. We have 20 dedicated online seats. Select the Online mode on the registration form.",
-  },
-  {
-    q: "How many seats are available?",
-    a: "30 in total: 20 online and 10 on-site. Seats are allocated on a first-come, first-served basis.",
-  },
-  {
-    q: "Can I change participation mode after registering?",
-    a: "Mode changes depend on seat availability. Contact the organizers after registering if you need to switch.",
-  },
+const FAQS = [
   {
     q: "Can I register as an individual?",
-    a: "Yes. Set your team size to 1 and use your name as the team name, or leave the team name blank.",
+    a: "No — every registration is a team of 2–4 members. The team leader registers once for the whole team.",
   },
   {
-    q: "How will I receive confirmation?",
-    a: "You'll see an instant confirmation page with a unique registration ID (e.g. HK26-0001). Save it for your records.",
+    q: "What does registration cost?",
+    a: `₹${config.feePerHead} per participant, calculated automatically: 2 members = ₹${config.feePerHead * 2}, 3 members = ₹${config.feePerHead * 3}, 4 members = ₹${config.feePerHead * 4}. The amount is computed on the server — you never type it.`,
+  },
+  {
+    q: "How do I pay?",
+    a: `By UPI to ${config.upiId}. After registering you get a payment screen with a Pay button and a QR code, both pre-filled with the exact amount. You complete the payment inside your own UPI app.`,
+  },
+  {
+    q: "How is my payment verified?",
+    a: "After paying, submit the UPI transaction ID shown in your UPI app. An organizer verifies it and confirms your registration — your seat is held in the meantime.",
+  },
+  {
+    q: "Is on-site registration available?",
+    a: `Yes — on-site registration is open. It works exactly like online registration, except there is no online payment: the fee (₹${config.feePerHead} per participant) is collected at the venue when you arrive.`,
+  },
+  {
+    q: "When does registration close?",
+    a: `Online registration closes when all ${config.onlineCapacity} online participant seats are filled, or at the event cut-off, whichever comes first. Watch the live status above.`,
+  },
+  {
+    q: "Can I change my team size or members after registering?",
+    a: "No — the team and its size are fixed at registration. The capacity check reserves the whole team, so pick your final lineup before paying.",
+  },
+  {
+    q: "Do you ever ask for my UPI PIN, OTP or bank password?",
+    a: "Never. This website only launches the UPI payment request. Authentication happens entirely inside your UPI app.",
   },
 ];
 
 export function Faq() {
-  const [open, setOpen] = useState<number | null>(0);
   return (
-    <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-4 sm:px-6 lg:px-8">
-      <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-muted)]">
-          FAQ
+    <section id="faq" className="scroll-mt-20 border-t border-line py-16 sm:py-20">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <p className="kicker">
+          <span className="kicker-dot">●</span> Answers
         </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          Questions, answered.
-        </h2>
+        <h2 className="display mt-3 text-3xl text-fg sm:text-4xl">FREQUENTLY ASKED QUESTIONS</h2>
+
+        <div className="mt-10 divide-y divide-line border-y border-line">
+          {FAQS.map((f) => (
+            <details key={f.q} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-2 py-5 text-[15px] font-medium text-fg marker:hidden hover:text-signal">
+                {f.q}
+                <span
+                  className="grid h-6 w-6 flex-none place-items-center rounded-md border border-line-strong text-mut transition-transform group-open:rotate-45"
+                  aria-hidden="true"
+                >
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </summary>
+              <p className="px-2 pb-5 text-sm leading-relaxed text-mut">{f.a}</p>
+            </details>
+          ))}
+        </div>
       </div>
-      <dl className="mt-10 divide-y divide-white/5 rounded-2xl border border-white/5 bg-white/[0.02]">
-        {FAQS.map((item, i) => {
-          const isOpen = open === i;
-          return (
-            <div key={item.q}>
-              <dt>
-                <button
-                  type="button"
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  aria-expanded={isOpen}
-                  aria-controls={`faq-panel-${i}`}
-                  className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-base font-medium text-white transition-colors hover:bg-white/[0.03]"
-                >
-                  <span>{item.q}</span>
-                  <span
-                    className={`text-[var(--color-muted)] transition-transform ${isOpen ? "rotate-45" : ""}`}
-                    aria-hidden="true"
-                  >
-                    +
-                  </span>
-                </button>
-              </dt>
-              {isOpen && (
-                <dd
-                  id={`faq-panel-${i}`}
-                  className="px-5 pb-5 text-sm leading-relaxed text-[var(--color-muted)]"
-                >
-                  {item.a}
-                </dd>
-              )}
-            </div>
-          );
-        })}
-      </dl>
     </section>
   );
 }

@@ -35,19 +35,20 @@ export function AdminLoginForm() {
     }
   }
 
-  const inputCls = "field w-full rounded-xl px-4 py-3 text-sm";
-
   return (
-    <form onSubmit={onSubmit} className="glass mt-10 rounded-3xl p-8" noValidate>
+    <form onSubmit={onSubmit} className="panel mt-10 rounded-xl p-8" noValidate>
       <div>
-        <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-white">
-          Username
+        <label
+          htmlFor="username"
+          className="mb-1.5 block font-mono text-[11px] font-semibold tracking-[0.14em] text-mut"
+        >
+          USERNAME
         </label>
         <input
           id="username"
           name="username"
           autoComplete="username"
-          className={inputCls}
+          className="field"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           disabled={loading}
@@ -55,15 +56,18 @@ export function AdminLoginForm() {
         />
       </div>
       <div className="mt-4">
-        <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-white">
-          Password
+        <label
+          htmlFor="password"
+          className="mb-1.5 block font-mono text-[11px] font-semibold tracking-[0.14em] text-mut"
+        >
+          PASSWORD
         </label>
         <input
           id="password"
           name="password"
           type="password"
           autoComplete="current-password"
-          className={inputCls}
+          className="field"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
@@ -73,25 +77,18 @@ export function AdminLoginForm() {
       {error && (
         <div
           role="alert"
-          className="mt-5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+          className="mt-5 rounded-lg border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-[#f2a9a6]"
         >
           {error}
         </div>
       )}
       <button
         type="submit"
-        className="btn-primary mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm"
+        className="btn btn-primary mt-6 w-full px-6 py-3 text-sm font-bold"
         disabled={loading}
         aria-busy={loading}
       >
-        {loading ? (
-          <>
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#060912]/40 border-t-[#060912]" />
-            Signing in…
-          </>
-        ) : (
-          "Sign in"
-        )}
+        {loading ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );

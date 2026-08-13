@@ -43,7 +43,19 @@ export const config = {
   onsiteCapacity: intEnv("ONSITE_CAPACITY", 10),
   totalCapacity: intEnv("TOTAL_CAPACITY", 30),
 
+  // Paid entry: ₹fee per head. Team total = team_size × FEE_PER_HEAD,
+  // computed server-side. Online teams pay via UPI; on-site teams pay at the
+  // venue.
+  feePerHead: intEnv("FEE_PER_HEAD", 150),
+  upiId: env("UPI_ID", "7449007050@ybl"),
+  payeeName: env("PAYEE_NAME", "HACKATHON"),
+
   registrationOpen: boolEnv("REGISTRATION_OPEN", true),
+
+  // On-spot (walk-in) registration channel. Independent of REGISTRATION_OPEN:
+  // a channel can have seats remaining yet be closed. Defaults to closed —
+  // only online registration is available unless explicitly enabled.
+  onsiteRegistrationOpen: boolEnv("ONSITE_REGISTRATION_OPEN", false),
 
   regIdPrefix: env("REG_ID_PREFIX", "HK26"),
 

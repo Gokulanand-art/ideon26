@@ -1,31 +1,78 @@
+import Link from "next/link";
+import { config } from "@/lib/config";
+
 const STEPS = [
-  { n: "01", title: "Register", desc: "Sign up online in under two minutes. Pick online or on-site." },
-  { n: "02", title: "Form Your Team", desc: "Solo or up to six builders. Pick a bold problem." },
-  { n: "03", title: "Build", desc: "24 hours of focused, creative building." },
-  { n: "04", title: "Submit", desc: "Ship your project and demo it to the judges." },
-  { n: "05", title: "Win", desc: "Take home prizes, swag and bragging rights." },
+  {
+    n: "01",
+    title: "Pick your team",
+    body: "Teams of 2–4 members. There are no individual registrations — bring at least one teammate.",
+  },
+  {
+    n: "02",
+    title: "Team leader details",
+    body: "Enter the team leader's name and email. The leader is member 1 and the main contact.",
+  },
+  {
+    n: "03",
+    title: "Add team members",
+    body: "Names only — no emails, no extra paperwork. Fields are generated for your team size.",
+  },
+  {
+    n: "04",
+    title: "Pay the team fee with UPI",
+    body: `The fee is automatic: ₹${config.feePerHead} × team size. Pay the exact amount via UPI to ${config.upiId}.`,
+  },
+  {
+    n: "05",
+    title: "Payment verified, seat locked",
+    body: "Submit your UPI transaction ID. An organizer verifies it against their UPI app and confirms your registration.",
+  },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="how" className="mx-auto max-w-7xl scroll-mt-20 px-4 sm:px-6 lg:px-8">
-      <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-muted)]">
-          How it works
+    <section id="how" className="scroll-mt-20 border-t border-line py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl">
+          <p className="kicker">
+            <span className="kicker-dot">●</span> Process
+          </p>
+          <h2 className="display mt-3 text-3xl text-fg sm:text-4xl">
+            HOW REGISTRATION WORKS
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-mut">
+            A single flow from team details to a verified, confirmed seat.
+          </p>
+        </div>
+
+        <ol className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          {STEPS.map((s, i) => (
+            <li key={s.n} className="panel relative rounded-xl p-5">
+              <span className="font-mono text-xs font-bold tracking-[0.2em] text-signal">
+                {s.n}
+              </span>
+              <h3 className="mt-3 text-[15px] font-semibold text-fg">{s.title}</h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-mut">{s.body}</p>
+              {i < STEPS.length - 1 && (
+                <svg
+                  className="absolute -right-3 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-line-strong lg:block"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </li>
+          ))}
+        </ol>
+
+        <p className="mt-8">
+          <Link href="/register" className="font-mono text-xs font-semibold tracking-[0.14em] text-signal hover:text-fg">
+            START REGISTRATION →
+          </Link>
         </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          Five steps to glory.
-        </h2>
       </div>
-      <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {STEPS.map((s) => (
-          <li key={s.n} className="glass rounded-2xl p-5">
-            <div className="font-mono text-3xl font-bold gradient-text">{s.n}</div>
-            <div className="mt-3 text-base font-semibold text-white">{s.title}</div>
-            <p className="mt-1 text-sm text-[var(--color-muted)]">{s.desc}</p>
-          </li>
-        ))}
-      </ol>
     </section>
   );
 }

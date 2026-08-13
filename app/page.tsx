@@ -1,11 +1,12 @@
+import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
-import { LiveStats } from "@/components/LiveStats";
-import { About } from "@/components/About";
-import { ModeCards } from "@/components/ModeCards";
+import { LiveStatus } from "@/components/LiveStatus";
+import { RegisterOptions } from "@/components/RegisterOptions";
 import { HowItWorks } from "@/components/HowItWorks";
+import { TeamFee } from "@/components/TeamFee";
+import { EventInfo } from "@/components/EventInfo";
 import { Faq } from "@/components/Faq";
 import { FinalCta } from "@/components/FinalCta";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getStats } from "@/lib/stats";
 import type { Stats } from "@/lib/stats";
@@ -17,33 +18,23 @@ export default async function Home() {
   try {
     initial = await getStats();
   } catch (err) {
-    // The client will bootstrap via the stats API + SSE.
     console.error("initial stats error", err);
   }
 
+  const open = initial?.registrationOpen === true && !initial?.onlineFull;
+
   return (
     <>
-      <Header />
+      <Navbar open={open} />
       <main className="flex-1">
-        <Hero />
-        <div id="live" className="scroll-mt-20 py-12 sm:py-16">
-          <LiveStats initial={initial} />
-        </div>
-        <div className="py-14 sm:py-20">
-          <About />
-        </div>
-        <div className="py-14 sm:py-20">
-          <ModeCards initial={initial} />
-        </div>
-        <div className="py-14 sm:py-20">
-          <HowItWorks />
-        </div>
-        <div className="py-14 sm:py-20">
-          <Faq />
-        </div>
-        <div className="py-14 sm:py-20">
-          <FinalCta />
-        </div>
+        <Hero stats={initial} />
+        <LiveStatus initial={initial} />
+        <RegisterOptions stats={initial} />
+        <HowItWorks />
+        <TeamFee />
+        <EventInfo />
+        <Faq />
+        <FinalCta open={open} />
       </main>
       <Footer />
     </>

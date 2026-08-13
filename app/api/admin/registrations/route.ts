@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireAdmin, checkOrigin } from "@/lib/auth";
-import {
-  listRegistrations,
-  updateStatus,
-  type ListParams,
-} from "@/lib/admin";
-import { adminStatusUpdateSchema, formatZodError } from "@/lib/validation";
+import { listRegistrations, runAdminAction, type ListParams } from "@/lib/admin";
+import { adminActionSchema, formatZodError } from "@/lib/validation";
+import { RegistrationError } from "@/lib/registration";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  await requireAdmin();
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const url = new URL(request.url);
   const params: ListParams = {
     search: url.searchParams.get("search") ?? undefined,
@@ -25,7 +23,8 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  await requireAdmin();
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!(await checkOrigin(request))) {
     return NextResponse.json({ error: "Origin verification failed." }, { status: 403 });
   }
@@ -37,7 +36,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const parsed = adminStatusUpdateSchema.safeParse(body);
+  const parsed = adminActionSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request.", fields: formatZodError(parsed.error) },
@@ -45,9 +44,17 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const updated = await updateStatus(parsed.data.id, parsed.data.status);
-  if (!updated) {
-    return NextResponse.json({ error: "Registration not found." }, { status: 404 });
+  try {
+    const updated = await runAdminAction(parsed.data.id, parsed.data.action, admin.u);
+    return NextResponse.json(updated);
+  } catch (err) {
+    if (err instanceof RegistrationError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: err.status });
+    }
+    console.error("admin action error", err);
+    return NextResponse.json(
+      { error: "Failed to update the registration." },
+      { status: 500 },
+    );
   }
-  return NextResponse.json(updated);
 }

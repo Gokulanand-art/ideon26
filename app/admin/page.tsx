@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-import { Header } from "@/components/Header";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { getCurrentAdmin } from "@/lib/auth";
 import { getStats } from "@/lib/stats";
-import { listRegistrations, getTodayCount } from "@/lib/admin";
+import { listRegistrations, getTodayCount, getAdminSummary } from "@/lib/admin";
 import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -15,11 +15,13 @@ export default async function AdminPage() {
 
   let stats = null;
   let list = null;
+  let summary = null;
   let todayCount = 0;
   try {
-    [stats, list, todayCount] = await Promise.all([
+    [stats, list, summary, todayCount] = await Promise.all([
       getStats(),
       listRegistrations({ page: 1, limit: 25 }),
+      getAdminSummary(),
       getTodayCount(),
     ]);
   } catch (err) {
@@ -28,13 +30,16 @@ export default async function AdminPage() {
 
   return (
     <>
-      <Header />
+      <Navbar open={stats?.registrationOpen === true && !stats?.onlineFull} />
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">Admin Dashboard</h1>
-              <p className="mt-1 text-sm text-[var(--color-muted)]">
+              <p className="kicker">
+                <span className="kicker-dot">●</span> Organizer console
+              </p>
+              <h1 className="display mt-2 text-3xl text-fg">ADMIN DASHBOARD</h1>
+              <p className="mt-1 text-sm text-mut">
                 {config.eventName} · {todayCount} registration{todayCount === 1 ? "" : "s"} today
               </p>
             </div>
@@ -44,7 +49,9 @@ export default async function AdminPage() {
             <AdminDashboard
               initialStats={stats}
               initialList={list}
+              initialSummary={summary}
               adminUser={admin.u}
+              feePerHead={config.feePerHead}
             />
           </div>
         </div>

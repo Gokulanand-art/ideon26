@@ -8,6 +8,7 @@ export async function freshDb(): Promise<DbAdapter> {
 let counter = 0;
 export function makeInput(overrides: Partial<RegisterInput> = {}): RegisterInput {
   counter += 1;
+  const team_size = overrides.team_size ?? 2;
   return {
     full_name: `Tester ${counter}`,
     email: `tester${counter}@example.com`,
@@ -15,9 +16,10 @@ export function makeInput(overrides: Partial<RegisterInput> = {}): RegisterInput
     college: "State University",
     department: "Computer Science",
     year: "3",
-    participation_type: "ONLINE",
+    registration_type: "ONLINE",
     team_name: `Team ${counter}`,
-    team_size: 2,
+    team_size,
+    member_names: Array.from({ length: Math.max(0, team_size - 1) }, (_, i) => `Member ${i + 2}`),
     ...overrides,
   };
 }

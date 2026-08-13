@@ -30,12 +30,14 @@ function requireSecret(): string {
 export function hashPassword(password: string): string {
   const salt = randomBytes(16);
   const hash = scryptSync(password, salt, 64);
-  return `scrypt$${salt.toString("hex")}$${hash.toString("hex")}`;
+  // ":" delimiter instead of "$" so the value survives dotenv parsing
+  // (.env files expand $... sequences, which would corrupt the hash).
+  return `scrypt:${salt.toString("hex")}:${hash.toString("hex")}`;
 }
 
 export function verifyPassword(password: string, stored: string): boolean {
   try {
-    const [scheme, saltHex, hashHex] = stored.split("$");
+    const [scheme, saltHex, hashHex] = stored.split(":");
     if (scheme !== "scrypt" || !saltHex || !hashHex) return false;
     const salt = Buffer.from(saltHex, "hex");
     const hash = Buffer.from(hashHex, "hex");
@@ -104,10 +106,15 @@ export async function getCurrentAdmin(): Promise<{ u: string } | null> {
   return verifySessionToken(store.get(COOKIE_NAME)?.value);
 }
 
-export async function requireAdmin(): Promise<{ u: string }> {
+/**
+ * Resolve the current admin session, or null when unauthenticated. Route
+ * handlers should turn null into a 401 response (throwing a Response object
+ * is not handled by the route handler runtime).
+ */
+export async function requireAdmin(): Promise<{ u: string } | null> {
   const admin = await getCurrentAdmin();
   if (!admin) {
-    throw new Response("Unauthorized", { status: 401 });
+    return null;
   }
   return admin;
 }

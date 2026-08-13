@@ -33,8 +33,6 @@ export interface DbAdapter {
   readonly kind: "pg" | "pglite";
 }
 
-let _adapterPromise: Promise<DbAdapter> | null = null;
-
 async function createPgliteAdapter(): Promise<DbAdapter> {
   const { PGlite } = await import("@electric-sql/pglite");
   const dataDir = process.env.PGLITE_DATA_DIR || "./data/hackathon";
@@ -154,10 +152,18 @@ async function runMigrations(adapter: DbAdapter): Promise<void> {
 
 /**
  * Get the singleton adapter, initializing and migrating on first call.
+ * Stored on globalThis because Next.js/Turbopack compiles pages and route
+ * handlers into separate module registries — a module-scoped singleton would
+ * create two PGlite instances on the same data directory, which causes
+ * intermittent WASM "Aborted()" failures on whichever instance opened second.
  */
+const GLOBAL_DB_KEY = "__hk_db_adapter_promise";
+type GlobalWithDb = typeof globalThis & { [GLOBAL_DB_KEY]?: Promise<DbAdapter> };
+
 export async function getDb(): Promise<DbAdapter> {
-  if (!_adapterPromise) {
-    _adapterPromise = (async () => {
+  const g = globalThis as GlobalWithDb;
+  if (!g[GLOBAL_DB_KEY]) {
+    g[GLOBAL_DB_KEY] = (async () => {
       const adapter = process.env.DATABASE_URL
         ? await createPgAdapter()
         : await createPgliteAdapter();
@@ -166,7 +172,7 @@ export async function getDb(): Promise<DbAdapter> {
       return adapter;
     })();
   }
-  return _adapterPromise;
+  return g[GLOBAL_DB_KEY]!;
 }
 
 /**
@@ -179,7 +185,11 @@ export async function syncSettings(adapter: DbAdapter): Promise<void> {
     ["onsite_capacity", String(config.onsiteCapacity)],
     ["total_capacity", String(config.totalCapacity)],
     ["registration_open", String(config.registrationOpen)],
+    ["onsite_registration_open", String(config.onsiteRegistrationOpen)],
     ["reg_id_prefix", config.regIdPrefix],
+    ["fee_per_head", String(config.feePerHead)],
+    ["upi_id", config.upiId],
+    ["payee_name", config.payeeName],
   ];
   for (const [key, value] of updates) {
     await adapter.query(
