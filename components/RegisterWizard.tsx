@@ -41,7 +41,7 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
   const amount = feePerHead * teamSize;
   const memberSlots = Math.max(0, teamSize - 1);
   const seatsLeft = mode === "ONLINE" ? onlineLeft : onsiteLeft;
-  const liveTeamFits = seatsLeft >= teamSize;
+  const liveTeamFits = seatsLeft >= 1;
 
   const steps = [
     ...(chooseMode ? [{ label: "Participation", hint: "01" }] : []),
@@ -65,7 +65,7 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
   function validateMembers(): boolean {
     const e: Errors = {};
     if (!liveTeamFits) {
-      e.team = `Only ${seatsLeft} ${mode === "ONLINE" ? "online" : "on-spot"} participant seats remain. A ${teamSize}-member team cannot register ${mode === "ONLINE" ? "online" : "on-spot"} — try a smaller team.`;
+      e.team = `Only ${seatsLeft} ${mode === "ONLINE" ? "online" : "on-spot"} team slot${seatsLeft === 1 ? "" : "s"} remain. A ${teamSize}-member team cannot register ${mode === "ONLINE" ? "online" : "on-spot"} — try a smaller team.`;
     }
     members.slice(0, memberSlots).forEach((m, i) => {
       if (m.trim().length < 2) e[`member${i}`] = "Every member name must be at least 2 characters.";
@@ -205,7 +205,7 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
                   ₹{feePerHead} / HEAD · UPI PAYMENT
                 </span>
                 <span className="mt-1 block font-mono text-[10px] text-dim">
-                  {onlineLeft} ONLINE SEATS LEFT
+                  {onlineLeft} ONLINE TEAM SLOTS LEFT
                 </span>
               </button>
               <button
@@ -227,7 +227,7 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
                   ₹{feePerHead} / HEAD · PAY AT VENUE
                 </span>
                 <span className="mt-1 block font-mono text-[10px] text-dim">
-                  {onsiteLeft} ON-SPOT SEATS LEFT
+                  {onsiteLeft} ON-SPOT TEAM SLOTS LEFT
                 </span>
               </button>
             </div>
@@ -321,7 +321,7 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
 
             {!liveTeamFits && (
               <div role="alert" className="mt-5 rounded-lg border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-[#f2a9a6]">
-                Only {seatsLeft} {mode === "ONLINE" ? "online" : "on-spot"} participant seats
+                Only {seatsLeft} {mode === "ONLINE" ? "online" : "on-spot"} team slot{seatsLeft === 1 ? "" : "s"}
                 remain. A {teamSize}-member team cannot register {mode === "ONLINE" ? "online" : "on-spot"} —
                 try a smaller team.
               </div>

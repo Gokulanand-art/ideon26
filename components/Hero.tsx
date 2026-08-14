@@ -67,7 +67,7 @@ export function Hero({ stats }: { stats: Stats | null }) {
                   REGISTRATION CLOSED
                 </p>
                 <p className="mt-2 text-sm text-mut">
-                  All {config.totalCapacity} participant seats have been filled.
+                  All {config.totalCapacity} team slots have been filled.
                 </p>
               </div>
             )}

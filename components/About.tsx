@@ -27,7 +27,7 @@ export function About() {
             <p className="mt-4 text-sm leading-relaxed text-mut">
               Teams of 2–4 build working prototypes across six domains — from
               AI &amp; intelligent systems to blockchain &amp; Web 3. Capacity
-              is limited to {config.totalCapacity} participants, so seats are
+              is limited to {config.totalCapacity} teams, so slots are
               reserved strictly in the order registrations are verified.
             </p>
           </div>

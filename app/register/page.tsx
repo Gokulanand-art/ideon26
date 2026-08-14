@@ -37,8 +37,8 @@ export default async function RegisterPage({
   const title = fixedMode === "ONSITE" ? "ON-SPOT REGISTRATION" : "REGISTER YOUR TEAM";
   const subtitle =
     fixedMode === "ONSITE"
-      ? `Teams of 2–4 · ₹${config.feePerHead} per participant · pay at the venue · ${onsiteLeft} on-spot seats left.`
-      : `Teams of 2–4 · ₹${config.feePerHead} per participant · online: UPI payment now · on-spot: pay at venue · ${onlineLeft} online / ${onsiteLeft} on-spot seats left.`;
+      ? `Teams of 2–4 · ₹${config.feePerHead} per participant · pay at the venue · ${onsiteLeft} on-spot team slots left.`
+      : `Teams of 2–4 · ₹${config.feePerHead} per participant · online: UPI payment now · on-spot: pay at venue · ${onlineLeft} online / ${onsiteLeft} on-spot team slots left.`;
 
   return (
     <>
@@ -78,12 +78,12 @@ export default async function RegisterPage({
                 <p className="mt-3 text-sm leading-relaxed text-mut">
                   {fixedMode === "ONSITE"
                     ? initial?.onsiteFull
-                      ? `All ${config.onsiteCapacity} on-spot participant seats have been filled.`
+                      ? `All ${config.onsiteCapacity} on-spot team slots have been filled.`
                       : "The organizers have paused on-spot registration."
                     : initial?.onlineFull
-                      ? `All ${config.onlineCapacity} online participant seats have been filled.`
+                      ? `All ${config.onlineCapacity} online team slots have been filled.`
                       : "The organizers have paused online registration."}{" "}
-                  Check the homepage for live seat availability.
+                  Check the homepage for live slot availability.
                 </p>
                 <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Link href="/register" className="btn btn-primary px-6 py-2.5 text-sm font-bold">

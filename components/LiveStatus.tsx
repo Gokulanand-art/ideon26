@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { Stats } from "@/lib/stats";
 
 /**
- * Live participant availability. Boots from the server-rendered snapshot,
+ * Live team-slot availability. Boots from the server-rendered snapshot,
  * then subscribes to the local SSE stream (`/api/realtime`) and falls back to
  * a slow poll. Only real database numbers are ever shown — there is no fake
  * activity or animation of counters.
@@ -65,24 +65,24 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
   const tiles = [
     {
       key: "total",
-      label: "TOTAL PARTICIPANTS",
+      label: "TOTAL TEAMS",
       used: stats?.total ?? 0,
       cap: stats?.totalCapacity ?? 30,
-      note: `${stats?.totalSeatsLeft ?? 30} seats left`,
+      note: `${stats?.totalSeatsLeft ?? 30} slots left`,
     },
     {
       key: "online",
-      label: "ONLINE PARTICIPANTS",
+      label: "ONLINE TEAMS",
       used: stats?.online ?? 0,
       cap: stats?.onlineCapacity ?? 20,
-      note: `${stats?.onlineSeatsLeft ?? 20} seats left`,
+      note: `${stats?.onlineSeatsLeft ?? 20} slots left`,
     },
     {
       key: "onsite",
-      label: "ON-SPOT PARTICIPANTS",
+      label: "ON-SPOT TEAMS",
       used: stats?.onsite ?? 0,
       cap: stats?.onsiteCapacity ?? 10,
-      note: `${stats?.onsiteSeatsLeft ?? 10} seats left`,
+      note: `${stats?.onsiteSeatsLeft ?? 10} slots left`,
     },
   ];
 
@@ -98,7 +98,7 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
               REGISTRATION IS LIVE
             </h2>
             <p className="mt-3 text-sm text-mut">
-              Live participant availability — updated in real time.
+              Live team-slot availability — updated in real time.
             </p>
           </div>
           <span
@@ -119,7 +119,7 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
                 <div className="flex items-center justify-between">
                   <span className="kicker">{t.label}</span>
                   <span className="font-mono text-[10px] tracking-[0.14em] text-dim">
-                    SEATS
+                    SLOTS
                   </span>
                 </div>
                 <p className="mt-5 font-mono text-4xl font-bold tracking-tight text-fg">
@@ -148,9 +148,9 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
         </div>
 
         <p className="mt-6 text-xs leading-relaxed text-dim">
-          Capacity is measured in participants — the sum of every team&apos;s
-          size — never in teams. Seat numbers come straight from the local
-          registration database.
+          Capacity is measured in teams — one registration = one team of 2–4
+          members, never in participants. Slot numbers come straight from the
+          local registration database.
         </p>
       </div>
     </section>

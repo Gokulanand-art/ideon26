@@ -51,13 +51,13 @@ export function RegisterOptions({ stats }: { stats: Stats | null }) {
               <div className="bg-panel-2 p-4">
                 <dt className="font-mono text-[10px] tracking-[0.14em] text-dim">CAPACITY</dt>
                 <dd className="mt-1 font-mono text-lg font-semibold text-fg">
-                  {config.onlineCapacity} participants
+                  {config.onlineCapacity} teams
                 </dd>
               </div>
               <div className="bg-panel-2 p-4">
-                <dt className="font-mono text-[10px] tracking-[0.14em] text-dim">SEATS LEFT</dt>
+                <dt className="font-mono text-[10px] tracking-[0.14em] text-dim">SLOTS LEFT</dt>
                 <dd className="mt-1 font-mono text-lg font-semibold text-signal">
-                  {onlineLeft} participants
+                  {onlineLeft} teams
                 </dd>
               </div>
               <div className="bg-panel-2 p-4">
@@ -119,13 +119,13 @@ export function RegisterOptions({ stats }: { stats: Stats | null }) {
               <div className="bg-panel-2 p-4">
                 <dt className="font-mono text-[10px] tracking-[0.14em] text-dim">CAPACITY</dt>
                 <dd className="mt-1 font-mono text-lg font-semibold text-fg">
-                  {config.onsiteCapacity} participants
+                  {config.onsiteCapacity} teams
                 </dd>
               </div>
               <div className="bg-panel-2 p-4">
-                <dt className="font-mono text-[10px] tracking-[0.14em] text-dim">SEATS LEFT</dt>
+                <dt className="font-mono text-[10px] tracking-[0.14em] text-dim">SLOTS LEFT</dt>
                 <dd className="mt-1 font-mono text-lg font-semibold text-signal">
-                  {onsiteLeft} participants
+                  {onsiteLeft} teams
                 </dd>
               </div>
               <div className="bg-panel-2 p-4">

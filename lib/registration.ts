@@ -8,8 +8,8 @@
  *      transactions serialize (works on both `pg` and PGlite).
  *   2. Read capacities / fee / UPI details from the `settings` table (the DB
  *      is the single source of truth).
- *   3. Count active PARTICIPANTS per channel and in total (SUM of team_size —
- *      never the number of teams).
+ *   3. Count active TEAMS per channel and in total (COUNT of registrations —
+ *      capacity is measured in teams of 2–4, never in participants).
  *   4. Reject if the whole team does not fit the channel (or total) capacity.
  *   5. Reject duplicate active registrations for the same email.
  *   6. Atomically increment the registration id sequence (row lock).
@@ -100,30 +100,30 @@ async function readSettings(q: QueryFn): Promise<Settings> {
 }
 
 /**
- * Active PARTICIPANTS per channel and in total. Capacity is measured in
- * participants (SUM of team_size), never in teams.
+ * Active TEAMS per channel and in total. Capacity is measured in teams
+ * (COUNT of registrations), never in participants.
  * ONLINE seats are consumed only once payment is submitted/verified; ONSITE
  * seats are consumed at registration (pay at venue, no online payment).
  */
 function countsSql(): string {
   return `SELECT
-    COALESCE(SUM(p.team_size) FILTER (
+    count(*) FILTER (
       WHERE p.registration_type = 'ONLINE'
         AND p.status NOT IN ('CANCELLED','REJECTED')
         AND EXISTS (SELECT 1 FROM payments pay
                     WHERE pay.participant_id = p.id
                       AND pay.status IN ('SUBMITTED','VERIFIED'))
-    ), 0)::int AS online,
-    COALESCE(SUM(p.team_size) FILTER (
+    )::int AS online,
+    count(*) FILTER (
       WHERE p.registration_type = 'ONSITE' AND p.status NOT IN ('CANCELLED','REJECTED')
-    ), 0)::int AS onsite,
-    COALESCE(SUM(p.team_size) FILTER (
+    )::int AS onsite,
+    count(*) FILTER (
       WHERE p.status NOT IN ('CANCELLED','REJECTED')
         AND (p.registration_type = 'ONSITE'
              OR EXISTS (SELECT 1 FROM payments pay
                         WHERE pay.participant_id = p.id
                           AND pay.status IN ('SUBMITTED','VERIFIED')))
-    ), 0)::int AS total
+    )::int AS total
     FROM participants p`;
 }
 
@@ -175,12 +175,12 @@ export async function registerParticipant(
     if (payAtVenue && !settings.onsiteRegistrationOpen) {
       throw new RegistrationError(
         "ONSITE_CLOSED",
-        "On-site registration is currently closed. Only online registration is available.",
+        "On-spot registration is currently closed. Only online registration is available.",
         403,
       );
     }
 
-    // 3. Live participant counts from the database (within the transaction).
+    // 3. Live team counts from the database (within the transaction).
     const { rows: countRows } = await q<{ online: number; onsite: number; total: number }>(
       countsSql(),
     );
@@ -190,24 +190,24 @@ export async function registerParticipant(
     const total = Number(counts.total);
 
     // 4. Capacity check (server-side, transactional) — the WHOLE team must fit.
-    if (registrationType === "ONSITE" && onSiteCount + input.team_size > settings.onsiteCap) {
+    if (registrationType === "ONSITE" && onSiteCount + 1 > settings.onsiteCap) {
       throw new RegistrationError(
         "ONSITE_FULL",
-        `Only ${Math.max(0, settings.onsiteCap - onSiteCount)} on-site participant seats remain — a ${input.team_size}-member team cannot be registered on-site.`,
+        `Only ${Math.max(0, settings.onsiteCap - onSiteCount)} on-spot team slots remain.`,
         422,
       );
     }
-    if (registrationType === "ONLINE" && online + input.team_size > settings.onlineCap) {
+    if (registrationType === "ONLINE" && online + 1 > settings.onlineCap) {
       throw new RegistrationError(
         "ONLINE_FULL",
-        `Only ${Math.max(0, settings.onlineCap - online)} online participant seats remain — a ${input.team_size}-member team cannot register online.`,
+        `Only ${Math.max(0, settings.onlineCap - online)} online team slots remain.`,
         422,
       );
     }
-    if (total + input.team_size > settings.totalCap) {
+    if (total + 1 > settings.totalCap) {
       throw new RegistrationError(
         "TOTAL_FULL",
-        `Registration is closed: only ${Math.max(0, settings.totalCap - total)} participant seats remain and a ${input.team_size}-member team needs ${input.team_size}.`,
+        `Registration is closed: only ${Math.max(0, settings.totalCap - total)} team slot${settings.totalCap - total === 1 ? "" : "s"} remain in total.`,
         423,
       );
     }
@@ -445,7 +445,7 @@ export function mapDbError(err: unknown): unknown {
       }
       return new RegistrationError(
         "TOTAL_FULL",
-        "Registration is closed. All available participant seats have been filled.",
+        "Registration is closed. All available team slots have been filled.",
         423,
       );
     }

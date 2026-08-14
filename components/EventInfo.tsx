@@ -12,9 +12,9 @@ export function EventInfo() {
     { label: "DEPARTMENTS", value: config.departmentNames },
     { label: "TEAM SIZE", value: "2–4 members" },
     { label: "FEE", value: `₹${config.feePerHead} per participant` },
-    { label: "ONLINE CAPACITY", value: `${config.onlineCapacity} participants` },
-    { label: "ON-SPOT CAPACITY", value: `${config.onsiteCapacity} participants` },
-    { label: "TOTAL CAPACITY", value: `${config.totalCapacity} participants` },
+    { label: "ONLINE CAPACITY", value: `${config.onlineCapacity} teams` },
+    { label: "ON-SPOT CAPACITY", value: `${config.onsiteCapacity} teams` },
+    { label: "TOTAL CAPACITY", value: `${config.totalCapacity} teams` },
   ];
 
   return (

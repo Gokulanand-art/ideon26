@@ -13,8 +13,8 @@ export function FinalCta({ open }: { open: boolean }) {
         </h2>
         <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-mut">
           {open
-            ? `Gather your team of 2–4 and lock in your seat — online with UPI, or on-spot paying at the venue — before all ${config.totalCapacity} participant slots fill up.`
-            : "All available seats have been filled. Check back later in case a seat opens up."}
+            ? `Gather your team of 2–4 and lock in your slot — online with UPI, or on-spot paying at the venue — before all ${config.totalCapacity} team slots fill up.`
+            : "All available slots have been filled. Check back later in case a slot opens up."}
         </p>
         <div className="mt-8">
           {open ? (

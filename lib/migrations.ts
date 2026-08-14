@@ -6,7 +6,9 @@
  * documentation and manual application (e.g. against Supabase/Postgres via
  * psql). The same SQL is embedded here so the runtime migration runner works
  * without filesystem access to the .sql files (important for serverless/bundled
- * deployments).
+ * deployments). Migration 003_online_recorded_after_payment.sql (v3→v4, online
+ * counts once payment is submitted/verified) and 004_teams_capacity.sql
+ * (v4→v5, capacity counted in teams) follow the same pattern.
  *
  * IMPORTANT: keep these strings in sync with db/migrations/*.sql.
  */
@@ -122,21 +124,29 @@ BEGIN
   SELECT value::integer INTO total_cap
     FROM settings WHERE key = 'total_capacity';
 
-  SELECT COALESCE(SUM(team_size), 0)::integer INTO mode_cnt
+  SELECT count(*)::integer INTO mode_cnt
     FROM participants
     WHERE registration_type = NEW.registration_type
-      AND status NOT IN ('CANCELLED','REJECTED');
+      AND status NOT IN ('CANCELLED','REJECTED')
+      AND (NEW.registration_type = 'ONSITE'
+           OR EXISTS (SELECT 1 FROM payments pay
+                      WHERE pay.participant_id = participants.id
+                        AND pay.status IN ('SUBMITTED','VERIFIED')));
 
-  SELECT COALESCE(SUM(team_size), 0)::integer INTO total_cnt
+  SELECT count(*)::integer INTO total_cnt
     FROM participants
-    WHERE status NOT IN ('CANCELLED','REJECTED');
+    WHERE status NOT IN ('CANCELLED','REJECTED')
+      AND (registration_type = 'ONSITE'
+           OR EXISTS (SELECT 1 FROM payments pay
+                      WHERE pay.participant_id = participants.id
+                        AND pay.status IN ('SUBMITTED','VERIFIED')));
 
-  IF mode_cnt + NEW.team_size > mode_cap THEN
+  IF mode_cnt + 1 > mode_cap THEN
     RAISE EXCEPTION 'CAPACITY_EXCEEDED:%', NEW.registration_type
       USING ERRCODE = '45000';
   END IF;
 
-  IF total_cnt + NEW.team_size > total_cap THEN
+  IF total_cnt + 1 > total_cap THEN
     RAISE EXCEPTION 'CAPACITY_EXCEEDED:TOTAL'
       USING ERRCODE = '45000';
   END IF;
@@ -340,12 +350,78 @@ CREATE TRIGGER trg_enforce_capacity
 COMMIT;
 `;
 
+const embedded004 = `BEGIN;
+
+-- Capacity is measured in TEAMS (COUNT of registrations), not participants
+-- (SUM of team_size). The whole team is checked atomically: mode_cnt + 1 > cap.
+-- ONLINE seats are consumed only once payment is submitted/verified; ONSITE
+-- seats are consumed at registration (pay at venue, no online payment).
+
+CREATE OR REPLACE FUNCTION enforce_capacity() RETURNS trigger AS $$
+DECLARE
+  mode_cap  integer;
+  total_cap integer;
+  mode_cnt  integer;
+  total_cnt integer;
+BEGIN
+  SELECT value::integer INTO mode_cap
+    FROM settings WHERE key = CASE WHEN NEW.registration_type = 'ONLINE'
+                                   THEN 'online_capacity' ELSE 'onsite_capacity' END;
+  SELECT value::integer INTO total_cap
+    FROM settings WHERE key = 'total_capacity';
+
+  SELECT count(*)::integer INTO mode_cnt
+    FROM participants
+    WHERE registration_type = NEW.registration_type
+      AND status NOT IN ('CANCELLED','REJECTED')
+      AND (NEW.registration_type = 'ONSITE'
+           OR EXISTS (SELECT 1 FROM payments pay
+                      WHERE pay.participant_id = participants.id
+                        AND pay.status IN ('SUBMITTED','VERIFIED')));
+
+  SELECT count(*)::integer INTO total_cnt
+    FROM participants
+    WHERE status NOT IN ('CANCELLED','REJECTED')
+      AND (registration_type = 'ONSITE'
+           OR EXISTS (SELECT 1 FROM payments pay
+                      WHERE pay.participant_id = participants.id
+                        AND pay.status IN ('SUBMITTED','VERIFIED')));
+
+  IF mode_cnt + 1 > mode_cap THEN
+    RAISE EXCEPTION 'CAPACITY_EXCEEDED:%', NEW.registration_type
+      USING ERRCODE = '45000';
+  END IF;
+
+  IF total_cnt + 1 > total_cap THEN
+    RAISE EXCEPTION 'CAPACITY_EXCEEDED:TOTAL'
+      USING ERRCODE = '45000';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_enforce_capacity ON participants;
+CREATE TRIGGER trg_enforce_capacity
+  BEFORE INSERT ON participants
+  FOR EACH ROW
+  EXECUTE FUNCTION enforce_capacity();
+
+COMMIT;
+`;
+
 function loadMigrations(): Migration[] {
-  const files = ["001_init.sql", "002_team_members.sql", "003_online_recorded_after_payment.sql"];
+  const files = [
+    "001_init.sql",
+    "002_team_members.sql",
+    "003_online_recorded_after_payment.sql",
+    "004_teams_capacity.sql",
+  ];
   const embedded: Record<string, string> = {
     "001_init.sql": embedded001,
     "002_team_members.sql": embedded002,
     "003_online_recorded_after_payment.sql": embedded003,
+    "004_teams_capacity.sql": embedded004,
   };
   return files.map((name) => {
     const fileUrl = path.join(process.cwd(), "db", "migrations", name);

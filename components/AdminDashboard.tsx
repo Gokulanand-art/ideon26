@@ -224,7 +224,7 @@ export function AdminDashboard({
     <div>
       {/* Participants */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatTile label="Total participants" value={stats?.total ?? 0} capacity={stats?.totalCapacity} />
+        <StatTile label="Total teams" value={stats?.total ?? 0} capacity={stats?.totalCapacity} />
         <StatTile label="Online" value={stats?.online ?? 0} capacity={stats?.onlineCapacity} />
         <StatTile label="On-site" value={stats?.onsite ?? 0} capacity={stats?.onsiteCapacity} />
       </div>

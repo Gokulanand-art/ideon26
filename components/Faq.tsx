@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: "When does registration close?",
-    a: `When all ${config.onlineCapacity} online and ${config.onsiteCapacity} on-spot participant seats are filled. Watch the live status on this page for the current counts.`,
+    a: `When all ${config.onlineCapacity} online and ${config.onsiteCapacity} on-spot team slots are filled. Watch the live status on this page for the current counts.`,
   },
   {
     q: "Can I change my team size or members after registering?",

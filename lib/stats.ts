@@ -19,28 +19,28 @@ export interface Stats {
   updatedAt: string;
 }
 
-// Capacity is measured in PARTICIPANTS (SUM of team_size), never teams.
+// Capacity is measured in TEAMS (COUNT of registrations), never participants.
 // ONLINE seats are consumed only once payment is submitted/verified (SUBMITTED
-// or VERIFIED) — a registration with an unpaid PENDING payment holds no seat.
+// or VERIFIED) — a registration with an unpaid PENDING payment holds no slot.
 // ONSITE seats are consumed at registration (pay at venue, no online payment).
 const COUNTS_SQL = `SELECT
-  COALESCE(SUM(p.team_size) FILTER (
+  count(*) FILTER (
     WHERE p.registration_type = 'ONLINE'
       AND p.status NOT IN ('CANCELLED','REJECTED')
       AND EXISTS (SELECT 1 FROM payments pay
                   WHERE pay.participant_id = p.id
                     AND pay.status IN ('SUBMITTED','VERIFIED'))
-  ), 0)::int AS online,
-  COALESCE(SUM(p.team_size) FILTER (
+  )::int AS online,
+  count(*) FILTER (
     WHERE p.registration_type = 'ONSITE' AND p.status NOT IN ('CANCELLED','REJECTED')
-  ), 0)::int AS onsite,
-  COALESCE(SUM(p.team_size) FILTER (
+  )::int AS onsite,
+  count(*) FILTER (
     WHERE p.status NOT IN ('CANCELLED','REJECTED')
       AND (p.registration_type = 'ONSITE'
            OR EXISTS (SELECT 1 FROM payments pay
                       WHERE pay.participant_id = p.id
                         AND pay.status IN ('SUBMITTED','VERIFIED')))
-  ), 0)::int AS total
+  )::int AS total
   FROM participants p`;
 
 const SETTINGS_SQL = `SELECT key, value FROM settings

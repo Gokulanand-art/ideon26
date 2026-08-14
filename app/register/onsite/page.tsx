@@ -39,7 +39,7 @@ export default async function OnsiteRegisterPage() {
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-mut">
               Teams of 2–4 · ₹{config.feePerHead} per participant · pay the fee
-              at the venue · {onsiteLeft} on-spot seats left.
+              at the venue · {onsiteLeft} on-spot team slots left.
             </p>
           </div>
 
@@ -54,9 +54,9 @@ export default async function OnsiteRegisterPage() {
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-mut">
                   {initial?.onsiteFull
-                    ? `All ${config.onsiteCapacity} on-spot participant seats have been filled.`
+                    ? `All ${config.onsiteCapacity} on-spot team slots have been filled.`
                     : "The organizers have paused on-spot registration."}{" "}
-                  Check the homepage for live seat availability.
+                  Check the homepage for live slot availability.
                 </p>
                 <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Link href="/register?mode=online" className="btn btn-primary px-6 py-2.5 text-sm font-bold">

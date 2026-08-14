@@ -8,7 +8,7 @@
 --     contact. All member names are stored normalized in `team_members`.
 --   * Participation mode: ONLINE (registered through the website, cap 20
 --     participants) or ONSITE (registered at the venue / for the venue,
---     cap 10 participants). Total cap 30 PARTICIPANTS — not teams.
+--     cap 10 teams). Total cap 30 TEAMS — not participants.
 --   * Paid entry: fee per head (settings.fee_per_head, default ₹150). Total
 --     payable = team_size × fee_per_head, always computed server-side.
 --   * ONLINE registrations start as status PENDING with a payment row
@@ -145,8 +145,10 @@ CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 -- ---------------------------------------------------------------------------
 -- Capacity enforcement trigger (database-level backstop).
 -- Runs BEFORE INSERT and raises SQLSTATE 45000 when a capacity would overflow.
--- Capacity is measured in PARTICIPANTS (SUM of team_size), never teams.
--- The whole team is checked atomically: mode_cnt + NEW.team_size > cap.
+-- Capacity is measured in TEAMS (COUNT of registrations), never participants.
+-- The whole team is checked atomically: mode_cnt + 1 > cap.
+-- ONLINE seats are consumed only once payment is submitted/verified; ONSITE
+-- seats are consumed at registration (pay at venue, no online payment).
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION enforce_capacity() RETURNS trigger AS $$
 DECLARE
@@ -161,21 +163,29 @@ BEGIN
   SELECT value::integer INTO total_cap
     FROM settings WHERE key = 'total_capacity';
 
-  SELECT COALESCE(SUM(team_size), 0)::integer INTO mode_cnt
+  SELECT count(*)::integer INTO mode_cnt
     FROM participants
     WHERE registration_type = NEW.registration_type
-      AND status NOT IN ('CANCELLED','REJECTED');
+      AND status NOT IN ('CANCELLED','REJECTED')
+      AND (NEW.registration_type = 'ONSITE'
+           OR EXISTS (SELECT 1 FROM payments pay
+                      WHERE pay.participant_id = participants.id
+                        AND pay.status IN ('SUBMITTED','VERIFIED')));
 
-  SELECT COALESCE(SUM(team_size), 0)::integer INTO total_cnt
+  SELECT count(*)::integer INTO total_cnt
     FROM participants
-    WHERE status NOT IN ('CANCELLED','REJECTED');
+    WHERE status NOT IN ('CANCELLED','REJECTED')
+      AND (registration_type = 'ONSITE'
+           OR EXISTS (SELECT 1 FROM payments pay
+                      WHERE pay.participant_id = participants.id
+                        AND pay.status IN ('SUBMITTED','VERIFIED')));
 
-  IF mode_cnt + NEW.team_size > mode_cap THEN
+  IF mode_cnt + 1 > mode_cap THEN
     RAISE EXCEPTION 'CAPACITY_EXCEEDED:%', NEW.registration_type
       USING ERRCODE = '45000';
   END IF;
 
-  IF total_cnt + NEW.team_size > total_cap THEN
+  IF total_cnt + 1 > total_cap THEN
     RAISE EXCEPTION 'CAPACITY_EXCEEDED:TOTAL'
       USING ERRCODE = '45000';
   END IF;

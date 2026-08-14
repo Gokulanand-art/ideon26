@@ -58,7 +58,7 @@ describe("registerParticipant", () => {
     ).rejects.toMatchObject({ code: "DUPLICATE_EMAIL", status: 409 });
   });
 
-  it("reflects the real database state in stats (participants = SUM of team_size)", async () => {
+  it("reflects the real database state in stats (teams = COUNT of registrations)", async () => {
     const db = await freshDb();
     const onlineA = await registerParticipant(makeInput({ team_size: 2 }), {
       adapter: db,
@@ -74,17 +74,18 @@ describe("registerParticipant", () => {
       onsite: true,
     });
     const stats = await getStats(db);
+    // Capacity counts TEAMS, not members: 2/3/4-member teams count as 1 each.
     // ONLINE seats are consumed only once payment is submitted; ONSITE counts immediately.
-    expect(stats.total).toBe(4);
+    expect(stats.total).toBe(1);
     expect(stats.online).toBe(0);
-    expect(stats.onsite).toBe(4);
-    expect(stats.totalSeatsLeft).toBe(26);
+    expect(stats.onsite).toBe(1);
+    expect(stats.totalSeatsLeft).toBe(29);
     // Submitting a txn id records the online team.
     await submitPaymentTxn(onlineA.registration_id, "410298330947", { adapter: db });
     const after = await getStats(db);
-    expect(after.total).toBe(6);
-    expect(after.online).toBe(2);
-    expect(after.totalSeatsLeft).toBe(24);
+    expect(after.total).toBe(2);
+    expect(after.online).toBe(1);
+    expect(after.totalSeatsLeft).toBe(28);
   });
 
   it("reports the on-spot channel as closed unless explicitly enabled (seats ≠ open)", async () => {
@@ -156,7 +157,7 @@ describe("payment flow", () => {
     expect(updated.status).toBe("CONFIRMED");
     expect(updated.payment_status).toBe("VERIFIED");
     expect(updated.verified_by).toBe("admin");
-    expect((await getStats(db)).online).toBe(2); // seat held, now confirmed
+    expect((await getStats(db)).online).toBe(1); // slot held, now confirmed
   });
 
   it("admin cannot verify before a txn id is submitted", async () => {
@@ -268,19 +269,19 @@ describe("on-site registrations", () => {
     expect(reg.amount).toBe(450);
   });
 
-  it("rejects a team that would exceed the 10 on-site participants", async () => {
+  it("rejects a team that would exceed the 10 on-site team slots", async () => {
     const db = await freshDb();
-    // 3 teams of 4 = 12 participants → only the first 2 fit (8), the 3rd (4) would hit 12 > 10.
-    for (let i = 1; i <= 2; i++) {
+    // Capacity is 10 TEAMS (any size 2–4): fill all 10, then the 11th is rejected.
+    for (let i = 1; i <= 10; i++) {
       await registerParticipant(makeInput({ email: `s${i}@x.com`, team_size: 4 }), {
         adapter: db,
         broadcast: false,
         onsite: true,
       });
     }
-    expect((await getStats(db)).onsite).toBe(8);
+    expect((await getStats(db)).onsite).toBe(10);
     await expect(
-      registerParticipant(makeInput({ email: "s3@x.com", team_size: 4 }), {
+      registerParticipant(makeInput({ email: "s11@x.com", team_size: 4 }), {
         adapter: db,
         broadcast: false,
         onsite: true,
@@ -289,7 +290,7 @@ describe("on-site registrations", () => {
   });
 });
 
-describe("capacity enforcement (participants, not teams)", () => {
+describe("capacity enforcement (teams, not participants)", () => {
   it("does not record online registrations until their payment is submitted", async () => {
     const db = await freshDb();
     const a = await registerParticipant(makeInput({ team_size: 2 }), {
@@ -300,7 +301,7 @@ describe("capacity enforcement (participants, not teams)", () => {
       adapter: db,
       broadcast: false,
     });
-    // Unpaid PENDING registrations hold no seats.
+    // Unpaid PENDING registrations hold no slots.
     const before = await getStats(db);
     expect(before.online).toBe(0);
     expect(before.onlineFull).toBe(false);
@@ -308,14 +309,14 @@ describe("capacity enforcement (participants, not teams)", () => {
     // Once the txn id is submitted, the team is recorded.
     await submitPaymentTxn(a.registration_id, "410298330947", { adapter: db });
     const after = await getStats(db);
-    expect(after.online).toBe(2);
-    expect(after.onlineSeatsLeft).toBe(18);
+    expect(after.online).toBe(1);
+    expect(after.onlineSeatsLeft).toBe(19);
   });
 
-  it("fills website registrations to 20 participants and rejects a team that does not fit", async () => {
+  it("fills website registrations to 20 teams and rejects a team that does not fit", async () => {
     const db = await freshDb();
-    // 9 teams of 2 = 18 participants; a 10th team of 2 fits (20), an 11th would overflow.
-    for (let i = 1; i <= 10; i++) {
+    // Capacity is 20 TEAMS (any size 2–4): 20 teams of 2 fill it, the 21st is rejected.
+    for (let i = 1; i <= 20; i++) {
       const r = await registerParticipant(makeInput({ email: `o${i}@x.com`, team_size: 2 }), {
         adapter: db,
         broadcast: false,
@@ -329,7 +330,7 @@ describe("capacity enforcement (participants, not teams)", () => {
     expect(stats.onlineFull).toBe(true);
 
     await expect(
-      registerParticipant(makeInput({ email: "o11@x.com", team_size: 2 }), {
+      registerParticipant(makeInput({ email: "o21@x.com", team_size: 2 }), {
         adapter: db,
         broadcast: false,
       }),
@@ -344,10 +345,11 @@ describe("capacity enforcement (participants, not teams)", () => {
     expect(onsite.registration_type).toBe("ONSITE");
   });
 
-  it("rejects a whole team atomically when only part of it fits", async () => {
+  it("a whole 4-member team fits in the last remaining slot", async () => {
     const db = await freshDb();
-    // 18 online participants seated (9 × 2). A 4-member team needs 4 seats but only 2 remain.
-    for (let i = 1; i <= 9; i++) {
+    // 19 online teams seated → 1 slot left. A 4-member team takes that single slot
+    // (capacity counts teams, so size is irrelevant), then the next team is rejected.
+    for (let i = 1; i <= 19; i++) {
       const r = await registerParticipant(makeInput({ email: `o${i}@x.com`, team_size: 2 }), {
         adapter: db,
         broadcast: false,
@@ -356,20 +358,27 @@ describe("capacity enforcement (participants, not teams)", () => {
         adapter: db,
       });
     }
+    expect((await getStats(db)).onlineSeatsLeft).toBe(1);
+    const last = await registerParticipant(makeInput({ email: "o20@x.com", team_size: 4 }), {
+      adapter: db,
+      broadcast: false,
+    });
+    await submitPaymentTxn(last.registration_id, "410200000020", { adapter: db });
+    expect((await getStats(db)).online).toBe(20);
     await expect(
-      registerParticipant(makeInput({ email: "o10@x.com", team_size: 4 }), {
+      registerParticipant(makeInput({ email: "o21@x.com", team_size: 4 }), {
         adapter: db,
         broadcast: false,
       }),
     ).rejects.toMatchObject({ code: "ONLINE_FULL", status: 422 });
-    // Seat count unchanged.
-    expect((await getStats(db)).online).toBe(18);
+    // Slot count unchanged.
+    expect((await getStats(db)).online).toBe(20);
   });
 
-  it("rejects everything once the total of 30 participants is reached", async () => {
+  it("rejects everything once the total of 30 teams is reached", async () => {
     const db = await freshDb();
-    // 20 online participants (10 × 2, payments submitted) + 10 on-site participants (5 × 2) = 30.
-    for (let i = 1; i <= 10; i++) {
+    // 20 online teams (payments submitted) + 10 on-site teams = 30 teams.
+    for (let i = 1; i <= 20; i++) {
       const r = await registerParticipant(makeInput({ email: `o${i}@x.com`, team_size: 2 }), {
         adapter: db,
         broadcast: false,
@@ -378,7 +387,7 @@ describe("capacity enforcement (participants, not teams)", () => {
         adapter: db,
       });
     }
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 10; i++) {
       await registerParticipant(makeInput({ email: `s${i}@x.com`, team_size: 2 }), {
         adapter: db,
         broadcast: false,
@@ -390,14 +399,14 @@ describe("capacity enforcement (participants, not teams)", () => {
     expect(stats.full).toBe(true);
 
     await expect(
-      registerParticipant(makeInput({ email: "o11@x.com", team_size: 2 }), {
+      registerParticipant(makeInput({ email: "o21@x.com", team_size: 2 }), {
         adapter: db,
         broadcast: false,
       }),
     ).rejects.toMatchObject({ status: expect.any(Number) });
 
     await expect(
-      registerParticipant(makeInput({ email: "s6@x.com", team_size: 2 }), {
+      registerParticipant(makeInput({ email: "s11@x.com", team_size: 2 }), {
         adapter: db,
         broadcast: false,
         onsite: true,
@@ -407,14 +416,14 @@ describe("capacity enforcement (participants, not teams)", () => {
 
   it("the database trigger rejects overflow even bypassing the app check", async () => {
     const db = await freshDb();
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 10; i++) {
       await registerParticipant(makeInput({ email: `s${i}@x.com`, team_size: 2 }), {
         adapter: db,
         broadcast: false,
         onsite: true,
       });
     }
-    // 10 on-site participants are seated; a direct insert of a 2-member team should be blocked.
+    // All 10 on-site team slots are seated; a direct insert of another team is blocked.
     await expect(
       db.query(
         `INSERT INTO participants (registration_id, full_name, email, phone, college, department, year, registration_type, team_size)
