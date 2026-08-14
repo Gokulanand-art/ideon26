@@ -69,11 +69,11 @@ export function ConfirmationPanel({ data }: { data: ConfirmationData }) {
     setTxnError(null);
     try {
       const res = await fetch(
-        `/api/registration/${encodeURIComponent(data.registration_id)}/payment?token=${encodeURIComponent(data.token)}`,
+        `/api/registration/${encodeURIComponent(data.registration_id)}/payment`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ txn_id: txnId.trim() }),
+          body: JSON.stringify({ txn_id: txnId.trim(), token: data.token }),
         },
       );
       const d = (await res.json().catch(() => ({}))) as { payment_status?: string; error?: string; fields?: Record<string, string> };

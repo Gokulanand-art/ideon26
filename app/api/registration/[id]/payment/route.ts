@@ -13,7 +13,18 @@ export async function POST(
 ) {
   const { id } = await params;
   const url = new URL(request.url);
-  const token = url.searchParams.get("token");
+  // Token in the query string (legacy) or in the JSON body. Some proxies
+  // strip query strings on POST requests, so the body is the primary path.
+  let token = url.searchParams.get("token");
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+  const bodyObj = (body ?? {}) as Record<string, unknown>;
+  if (!token && typeof bodyObj.token === "string") token = bodyObj.token;
 
   // Same short-lived signed token as the success page: the payer must prove
   // they own this registration before submitting a transaction id.
@@ -28,13 +39,6 @@ export async function POST(
       { error: "Too many attempts. Please slow down." },
       { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
     );
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
   const parsed = txnIdSchema.safeParse(body);
