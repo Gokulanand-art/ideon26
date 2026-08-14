@@ -55,9 +55,9 @@ export const config = {
   registrationOpen: boolEnv("REGISTRATION_OPEN", true),
 
   // On-spot (walk-in) registration channel. Independent of REGISTRATION_OPEN:
-  // a channel can have seats remaining yet be closed. Defaults to closed —
-  // only online registration is available unless explicitly enabled.
-  onsiteRegistrationOpen: boolEnv("ONSITE_REGISTRATION_OPEN", false),
+  // a channel can have seats remaining yet be closed. On-spot works exactly
+  // like online, except the fee is paid at the venue (no online payment).
+  onsiteRegistrationOpen: boolEnv("ONSITE_REGISTRATION_OPEN", true),
 
   regIdPrefix: env("REG_ID_PREFIX", "IDEON26"),
 

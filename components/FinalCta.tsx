@@ -13,7 +13,7 @@ export function FinalCta({ open }: { open: boolean }) {
         </h2>
         <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-mut">
           {open
-            ? `Gather your team of 2–4 and lock in your seat before the ${config.onlineCapacity} online participant slots fill up.`
+            ? `Gather your team of 2–4 and lock in your seat — online with UPI, or on-spot paying at the venue — before all ${config.totalCapacity} participant slots fill up.`
             : "All available seats have been filled. Check back later in case a seat opens up."}
         </p>
         <div className="mt-8">
@@ -22,7 +22,7 @@ export function FinalCta({ open }: { open: boolean }) {
               href="/register"
               className="btn btn-primary px-10 py-4 text-[15px] font-bold tracking-wide"
             >
-              REGISTER ONLINE
+              REGISTER YOUR TEAM
             </Link>
           ) : (
             <span className="btn btn-disabled px-10 py-4 text-[15px] font-bold tracking-wide">

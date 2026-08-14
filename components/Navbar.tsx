@@ -63,7 +63,7 @@ export function Navbar({ open }: { open: boolean }) {
                 : "cursor-not-allowed border border-line bg-transparent text-dim"
             }`}
           >
-            {open ? "Register Online" : "Registration Closed"}
+            {open ? "Register" : "Registration Closed"}
           </Link>
         </nav>
 
@@ -108,7 +108,7 @@ export function Navbar({ open }: { open: boolean }) {
                   : "cursor-not-allowed border border-line bg-transparent text-dim"
               }`}
             >
-              {open ? "Register Online" : "Registration Closed"}
+              {open ? "Register" : "Registration Closed"}
             </Link>
           </nav>
         </div>

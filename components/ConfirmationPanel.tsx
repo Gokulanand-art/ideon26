@@ -168,7 +168,7 @@ export function ConfirmationPanel({ data }: { data: ConfirmationData }) {
           <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">PARTICIPATION</dt>
           <dd>
             <span className={`chip ${data.registration_type === "ONLINE" ? "chip-open" : "chip-muted"}`}>
-              {data.registration_type === "ONLINE" ? "ONLINE" : "ON-SITE"}
+              {data.registration_type === "ONLINE" ? "ONLINE" : "ON-SPOT"}
             </span>
           </dd>
         </div>
@@ -197,7 +197,7 @@ export function ConfirmationPanel({ data }: { data: ConfirmationData }) {
         </div>
       </dl>
 
-      {/* Payment flow — online only, never shown for on-site */}
+      {/* Payment flow — online only, never shown for on-spot */}
       {data.registration_type === "ONLINE" && !cancelled && (
         <div className="panel mt-6 rounded-xl p-6">
           <div className="flex items-center justify-between">

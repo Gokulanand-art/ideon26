@@ -61,7 +61,7 @@ export default async function SuccessPage({
   let open = false;
   try {
     const stats = await getStats();
-    open = stats.registrationOpen === true && !stats.onlineFull;
+    open = stats.registrationOpen === true && !stats.full;
   } catch {
     /* navbar CTA stays disabled */
   }

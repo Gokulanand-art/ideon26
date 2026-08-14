@@ -7,6 +7,9 @@ import { config } from "@/lib/config";
 interface Props {
   feePerHead: number;
   onlineLeft: number;
+  onsiteLeft: number;
+  /** Fixed participation mode: hides the mode-choice step. */
+  initialMode?: "ONLINE" | "ONSITE";
 }
 
 interface ApiError {
@@ -17,10 +20,12 @@ interface ApiError {
 const TEAM_SIZES = [2, 3, 4] as const;
 
 type Errors = Record<string, string>;
+type Mode = "ONLINE" | "ONSITE";
 
-export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
+export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const [mode, setMode] = useState<Mode>(initialMode ?? "ONLINE");
   const [leader, setLeader] = useState({ name: "", email: "" });
   const [teamSize, setTeamSize] = useState<2 | 3 | 4>(2);
   const [members, setMembers] = useState<string[]>(["", ""]);
@@ -28,18 +33,22 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const totalSteps = 4;
+  const chooseMode = initialMode == null;
+  const totalSteps = chooseMode ? 5 : 4;
+  const contentStep = chooseMode ? step - 1 : step;
   const isLast = step === totalSteps - 1;
 
   const amount = feePerHead * teamSize;
   const memberSlots = Math.max(0, teamSize - 1);
-  const liveTeamFits = onlineLeft >= teamSize;
+  const seatsLeft = mode === "ONLINE" ? onlineLeft : onsiteLeft;
+  const liveTeamFits = seatsLeft >= teamSize;
 
   const steps = [
-    { label: "Team leader", hint: "01" },
-    { label: "Team size", hint: "02" },
-    { label: "Members", hint: "03" },
-    { label: "Review & pay", hint: "04" },
+    ...(chooseMode ? [{ label: "Participation", hint: "01" }] : []),
+    { label: "Team leader", hint: chooseMode ? "02" : "01" },
+    { label: "Team size", hint: chooseMode ? "03" : "02" },
+    { label: "Members", hint: chooseMode ? "04" : "03" },
+    { label: "Review", hint: chooseMode ? "05" : "04" },
   ];
 
   const errorFor = (key: string): string | undefined => errors[key];
@@ -56,7 +65,7 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
   function validateMembers(): boolean {
     const e: Errors = {};
     if (!liveTeamFits) {
-      e.team = `Only ${onlineLeft} online participant seats remain. A ${teamSize}-member team cannot register — try a smaller team.`;
+      e.team = `Only ${seatsLeft} ${mode === "ONLINE" ? "online" : "on-spot"} participant seats remain. A ${teamSize}-member team cannot register ${mode === "ONLINE" ? "online" : "on-spot"} — try a smaller team.`;
     }
     members.slice(0, memberSlots).forEach((m, i) => {
       if (m.trim().length < 2) e[`member${i}`] = "Every member name must be at least 2 characters.";
@@ -67,14 +76,21 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
 
   function next() {
     setServerError(null);
-    if (step === 0 && !validateLeader()) return;
-    if (step === 2 && !validateMembers()) return;
+    if (contentStep === 0 && !validateLeader()) return;
+    if (contentStep === 2 && !validateMembers()) return;
     setStep((s) => Math.min(totalSteps - 1, s + 1));
   }
 
   function back() {
     setServerError(null);
     setStep((s) => Math.max(0, s - 1));
+  }
+
+  function choose(m: Mode) {
+    setMode(m);
+    setServerError(null);
+    setErrors({});
+    setStep((s) => Math.min(totalSteps - 1, s + 1));
   }
 
   async function submit() {
@@ -89,7 +105,7 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
         body: JSON.stringify({
           full_name: leader.name.trim(),
           email: leader.email.trim(),
-          registration_type: "ONLINE",
+          registration_type: mode,
           team_size: teamSize,
           member_names: members.slice(0, memberSlots).map((m) => m.trim()),
         }),
@@ -160,7 +176,65 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
       )}
 
       <div className="mt-8">
-        {step === 0 && (
+        {/* Participation mode — only when no fixed mode was chosen */}
+        {chooseMode && step === 0 && (
+          <section aria-labelledby="step-mode" className="rise">
+            <p className="kicker">Step 01 / 05</p>
+            <h2 id="step-mode" className="display mt-2 text-2xl text-fg">PARTICIPATION MODE</h2>
+            <p className="mt-2 text-sm text-mut">
+              Choose how your team joins {config.eventName}. Both channels are
+              open — the only difference is how the fee is paid.
+            </p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2" role="radiogroup" aria-label="Participation mode">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={mode === "ONLINE"}
+                onClick={() => choose("ONLINE")}
+                className={`rounded-xl border p-5 text-left transition-colors ${
+                  mode === "ONLINE"
+                    ? "border-signal bg-signal/10 shadow-[0_0_0_1px_rgba(56,189,248,0.3)]"
+                    : "border-line-strong bg-panel hover:border-mut"
+                }`}
+              >
+                <span className="block font-mono text-xs font-bold tracking-[0.18em] text-fg">ONLINE</span>
+                <span className="mt-2 block text-sm leading-relaxed text-mut">
+                  Join remotely. Fee paid now with UPI from your phone.
+                </span>
+                <span className="mt-4 block font-mono text-[11px] text-signal">
+                  ₹{feePerHead} / HEAD · UPI PAYMENT
+                </span>
+                <span className="mt-1 block font-mono text-[10px] text-dim">
+                  {onlineLeft} ONLINE SEATS LEFT
+                </span>
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={mode === "ONSITE"}
+                onClick={() => choose("ONSITE")}
+                className={`rounded-xl border p-5 text-left transition-colors ${
+                  mode === "ONSITE"
+                    ? "border-signal bg-signal/10 shadow-[0_0_0_1px_rgba(56,189,248,0.3)]"
+                    : "border-line-strong bg-panel hover:border-mut"
+                }`}
+              >
+                <span className="block font-mono text-xs font-bold tracking-[0.18em] text-fg">ON-SPOT</span>
+                <span className="mt-2 block text-sm leading-relaxed text-mut">
+                  At the venue. No online payment — the fee is collected when you arrive.
+                </span>
+                <span className="mt-4 block font-mono text-[11px] text-signal">
+                  ₹{feePerHead} / HEAD · PAY AT VENUE
+                </span>
+                <span className="mt-1 block font-mono text-[10px] text-dim">
+                  {onsiteLeft} ON-SPOT SEATS LEFT
+                </span>
+              </button>
+            </div>
+          </section>
+        )}
+
+        {contentStep === 0 && (
           <section aria-labelledby="step-leader" className="rise">
             <p className="kicker">Step 01 / 04</p>
             <h2 id="step-leader" className="display mt-2 text-2xl text-fg">TEAM LEADER</h2>
@@ -195,9 +269,9 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
           </section>
         )}
 
-        {step === 1 && (
+        {contentStep === 1 && (
           <section aria-labelledby="step-size" className="rise">
-            <p className="kicker">Step 02 / 04</p>
+            <p className="kicker">Step {String(step + 1).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}</p>
             <h2 id="step-size" className="display mt-2 text-2xl text-fg">TEAM SIZE</h2>
             <p className="mt-2 text-sm text-mut">
               Every registration is a team of 2–4. No solo entries.
@@ -232,14 +306,14 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
               FEE · ₹{feePerHead} × {teamSize} = <span className="text-fg">₹{amount}</span>
             </p>
             <p className="mt-1 font-mono text-[10px] text-dim">
-              PAID VIA UPI AT THE FINAL STEP
+              {mode === "ONLINE" ? "PAID VIA UPI AT THE FINAL STEP" : "PAID AT THE VENUE"}
             </p>
           </section>
         )}
 
-        {step === 2 && (
+        {contentStep === 2 && (
           <section aria-labelledby="step-members" className="rise">
-            <p className="kicker">Step 03 / 04</p>
+            <p className="kicker">Step {String(step + 1).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}</p>
             <h2 id="step-members" className="display mt-2 text-2xl text-fg">TEAM MEMBERS</h2>
             <p className="mt-2 text-sm text-mut">
               Names only — no emails needed. Member 1 is {leader.name.trim() || "the team leader"}.
@@ -247,8 +321,9 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
 
             {!liveTeamFits && (
               <div role="alert" className="mt-5 rounded-lg border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-[#f2a9a6]">
-                Only {onlineLeft} online participant seats remain. A {teamSize}-member team
-                cannot register — try a smaller team.
+                Only {seatsLeft} {mode === "ONLINE" ? "online" : "on-spot"} participant seats
+                remain. A {teamSize}-member team cannot register {mode === "ONLINE" ? "online" : "on-spot"} —
+                try a smaller team.
               </div>
             )}
 
@@ -281,20 +356,23 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
 
         {isLast && (
           <section aria-labelledby="step-review" className="rise">
-            <p className="kicker">Step 04 / 04</p>
+            <p className="kicker">Step {String(totalSteps).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}</p>
             <h2 id="step-review" className="display mt-2 text-2xl text-fg">
-              REVIEW &amp; PAY
+              {mode === "ONLINE" ? "REVIEW & PAY" : "REVIEW & CONFIRM"}
             </h2>
             <p className="mt-2 text-sm text-mut">
-              Confirm the details. The fee is calculated automatically — you
-              never type the amount.
+              {mode === "ONLINE"
+                ? "Confirm the details. The fee is calculated automatically — you never type the amount."
+                : "Confirm the details. No online payment — the fee is collected at the venue."}
             </p>
 
             <dl className="panel mt-6 divide-y divide-line rounded-xl">
               <div className="flex items-center justify-between px-5 py-3.5">
                 <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">MODE</dt>
                 <dd>
-                  <span className="chip chip-open">ONLINE · UPI PAYMENT</span>
+                  <span className={`chip ${mode === "ONLINE" ? "chip-open" : "chip-muted"}`}>
+                    {mode === "ONLINE" ? "ONLINE · UPI PAYMENT" : "ON-SPOT · PAY AT VENUE"}
+                  </span>
                 </dd>
               </div>
               <div className="flex items-center justify-between px-5 py-3.5">
@@ -324,12 +402,20 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
               </div>
             </dl>
 
-            <div className="mt-5 rounded-xl border border-signal/30 bg-signal/[0.06] p-5">
+            <div
+              className={`mt-5 rounded-xl border p-5 ${
+                mode === "ONLINE"
+                  ? "border-signal/30 bg-signal/[0.06]"
+                  : "border-warn/30 bg-warn/[0.06]"
+              }`}
+            >
               <div className="flex items-baseline justify-between">
                 <span className="font-mono text-[11px] tracking-[0.14em] text-mut">
                   ₹{feePerHead} × {teamSize} MEMBERS
                 </span>
-                <span className="font-mono text-[11px] text-dim">UPI PAYMENT</span>
+                <span className={`font-mono text-[11px] ${mode === "ONLINE" ? "text-dim" : "text-warn"}`}>
+                  {mode === "ONLINE" ? "UPI PAYMENT" : "PAY AT VENUE"}
+                </span>
               </div>
               <div className="mt-2 flex items-baseline justify-between">
                 <span className="text-sm font-medium text-fg">TOTAL REGISTRATION FEE</span>
@@ -345,10 +431,16 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
               disabled={submitting}
               className="btn btn-primary mt-6 w-full px-6 py-4 text-[15px] font-bold tracking-wide"
             >
-              {submitting ? "RESERVING SEAT…" : `CONTINUE TO PAYMENT · ₹${amount}`}
+              {submitting
+                ? "RESERVING SEAT…"
+                : mode === "ONLINE"
+                  ? `CONTINUE TO PAYMENT · ₹${amount}`
+                  : "REGISTER ON-SPOT TEAM"}
             </button>
             <p className="mt-3 text-center font-mono text-[11px] text-dim">
-              SECURE UPI PAYMENT · AMOUNT CALCULATED AUTOMATICALLY
+              {mode === "ONLINE"
+                ? "SECURE UPI PAYMENT · AMOUNT CALCULATED AUTOMATICALLY"
+                : "NO ONLINE PAYMENT · FEE COLLECTED AT THE VENUE"}
             </p>
           </section>
         )}
@@ -376,7 +468,7 @@ export function RegisterWizard({ feePerHead, onlineLeft }: Props) {
       </div>
 
       <p className="mt-8 text-center font-mono text-[11px] leading-relaxed text-dim">
-        {config.eventName.toUpperCase()} · ONLINE REGISTRATION · UPI PAYMENT · ₹{feePerHead} / PARTICIPANT
+        {config.eventName.toUpperCase()} · {mode === "ONLINE" ? "ONLINE REGISTRATION · UPI PAYMENT" : "ON-SPOT REGISTRATION · PAY AT VENUE"} · ₹{feePerHead} / PARTICIPANT
       </p>
     </div>
   );

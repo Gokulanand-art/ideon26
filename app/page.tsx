@@ -22,7 +22,7 @@ export default async function Home() {
     console.error("initial stats error", err);
   }
 
-  const open = initial?.registrationOpen === true && !initial?.onlineFull;
+  const open = initial?.registrationOpen === true && !initial?.full;
 
   return (
     <>

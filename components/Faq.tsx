@@ -19,11 +19,11 @@ const FAQS = [
   },
   {
     q: "Is on-spot registration available?",
-    a: `Not right now. On-spot registration is closed — only online registration is open.`,
+    a: "Yes — on-spot registration works exactly like online, except the fee is paid at the venue when you arrive. No online payment.",
   },
   {
-    q: "When does online registration close?",
-    a: `When all ${config.onlineCapacity} online participant seats are filled. Watch the live status on this page for the current count.`,
+    q: "When does registration close?",
+    a: `When all ${config.onlineCapacity} online and ${config.onsiteCapacity} on-spot participant seats are filled. Watch the live status on this page for the current counts.`,
   },
   {
     q: "Can I change my team size or members after registering?",

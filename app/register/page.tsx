@@ -7,7 +7,14 @@ import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-export default async function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const { mode } = await searchParams;
+  const fixedMode = mode === "onsite" ? "ONSITE" : mode === "online" ? "ONLINE" : null;
+
   let initial = null;
   let statsError = false;
   try {
@@ -18,7 +25,20 @@ export default async function RegisterPage() {
   }
 
   const onlineLeft = initial?.onlineSeatsLeft ?? config.onlineCapacity;
-  const open = initial?.registrationOpen === true && !initial?.onlineFull;
+  const onsiteLeft = initial?.onsiteSeatsLeft ?? config.onsiteCapacity;
+  const open =
+    initial?.registrationOpen === true &&
+    (fixedMode === "ONSITE"
+      ? initial?.onsiteOpen === true && !initial?.onsiteFull
+      : fixedMode === "ONLINE"
+        ? !initial?.onlineFull
+        : !initial?.onlineFull || (initial?.onsiteOpen === true && !initial?.onsiteFull));
+
+  const title = fixedMode === "ONSITE" ? "ON-SPOT REGISTRATION" : "REGISTER YOUR TEAM";
+  const subtitle =
+    fixedMode === "ONSITE"
+      ? `Teams of 2–4 · ₹${config.feePerHead} per participant · pay at the venue · ${onsiteLeft} on-spot seats left.`
+      : `Teams of 2–4 · ₹${config.feePerHead} per participant · online: UPI payment now · on-spot: pay at venue · ${onlineLeft} online / ${onsiteLeft} on-spot seats left.`;
 
   return (
     <>
@@ -27,15 +47,14 @@ export default async function RegisterPage() {
         <div className="mx-auto max-w-6xl px-4 pb-20 pt-12 sm:px-6 sm:pt-16 lg:px-8">
           <div className="text-center">
             <p className="kicker">
-              <span className="kicker-dot">●</span> {config.eventName} · Online registration
+              <span className="kicker-dot">●</span> {config.eventName} ·{" "}
+              {fixedMode === "ONSITE" ? "On-spot registration" : "Registration"}
             </p>
             <h1 className="display mt-3 text-4xl text-fg sm:text-5xl">
-              REGISTER YOUR TEAM<span className="text-signal">.</span>
+              {title}
+              <span className="text-signal">.</span>
             </h1>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-mut">
-              Teams of 2–4 · ₹{config.feePerHead} per participant · secure UPI
-              payment · {onlineLeft} online participant seats left.
-            </p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-mut">{subtitle}</p>
           </div>
 
           <div className="mt-12">
@@ -49,23 +68,39 @@ export default async function RegisterPage() {
             ) : !open ? (
               <div className="mx-auto max-w-xl rounded-xl border border-line bg-panel px-6 py-12 text-center">
                 <p className="font-mono text-xs font-bold tracking-[0.2em] text-bad">
-                  ● ONLINE REGISTRATION CLOSED
+                  ● {fixedMode === "ONSITE" ? "ON-SPOT" : "ONLINE"} REGISTRATION CLOSED
                 </p>
                 <h2 className="display mt-4 text-2xl text-fg">
-                  Online registration is currently closed
+                  {fixedMode === "ONSITE"
+                    ? "On-spot registration is currently closed"
+                    : "Online registration is currently closed"}
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-mut">
-                  {initial?.onlineFull
-                    ? `All ${config.onlineCapacity} online participant seats have been filled.`
-                    : "The organizers have paused online registration."}{" "}
+                  {fixedMode === "ONSITE"
+                    ? initial?.onsiteFull
+                      ? `All ${config.onsiteCapacity} on-spot participant seats have been filled.`
+                      : "The organizers have paused on-spot registration."
+                    : initial?.onlineFull
+                      ? `All ${config.onlineCapacity} online participant seats have been filled.`
+                      : "The organizers have paused online registration."}{" "}
                   Check the homepage for live seat availability.
                 </p>
-                <Link href="/" className="btn btn-ghost mt-7 px-6 py-2.5 text-sm">
-                  ← Back to homepage
-                </Link>
+                <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Link href="/register" className="btn btn-primary px-6 py-2.5 text-sm font-bold">
+                    REGISTER ANOTHER WAY
+                  </Link>
+                  <Link href="/" className="btn btn-ghost px-6 py-2.5 text-sm">
+                    ← Back to homepage
+                  </Link>
+                </div>
               </div>
             ) : (
-              <RegisterWizard feePerHead={config.feePerHead} onlineLeft={onlineLeft} />
+              <RegisterWizard
+                feePerHead={config.feePerHead}
+                onlineLeft={onlineLeft}
+                onsiteLeft={onsiteLeft}
+                initialMode={fixedMode ?? undefined}
+              />
             )}
           </div>
         </div>

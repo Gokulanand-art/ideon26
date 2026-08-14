@@ -58,7 +58,7 @@ export async function getStats(adapter?: DbAdapter): Promise<Stats> {
   const onsiteCapacity = Number(map.get("onsite_capacity") ?? "10");
   const totalCapacity = Number(map.get("total_capacity") ?? "30");
   const registrationOpen = /^(1|true|yes|on)$/i.test(map.get("registration_open") ?? "true");
-  const onsiteOpen = /^(1|true|yes|on)$/i.test(map.get("onsite_registration_open") ?? "false");
+  const onsiteOpen = /^(1|true|yes|on)$/i.test(map.get("onsite_registration_open") ?? "true");
 
   const c = countRows[0] ?? { online: 0, onsite: 0, total: 0 };
   const online = Number(c.online);

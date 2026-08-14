@@ -8,7 +8,9 @@ import type { Stats } from "@/lib/stats";
  * readable with or without color.
  */
 export function Hero({ stats }: { stats: Stats | null }) {
-  const open = stats?.registrationOpen === true && !stats?.onlineFull;
+  const onlineOpen = stats?.registrationOpen === true && !stats?.onlineFull;
+  const onsiteOpen = stats?.registrationOpen === true && stats?.onsiteOpen === true && !stats?.onsiteFull;
+  const open = onlineOpen || onsiteOpen;
   const onlineLeft = stats?.onlineSeatsLeft ?? config.onlineCapacity;
 
   return (
@@ -54,7 +56,7 @@ export function Hero({ stats }: { stats: Stats | null }) {
                 href="/register"
                 className="btn btn-primary w-full max-w-xs px-8 py-4 text-[15px] font-bold tracking-wide"
               >
-                REGISTER ONLINE
+                REGISTER YOUR TEAM
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -74,7 +76,13 @@ export function Hero({ stats }: { stats: Stats | null }) {
               <span className="flex items-center gap-2.5">
                 <span className="live-dot" aria-hidden="true" />
                 <span className="font-mono text-xs font-semibold tracking-[0.14em] text-signal">
-                  {open ? "ONLINE REGISTRATION OPEN" : "REGISTRATION STATUS CLOSED"}
+                  {onlineOpen && onsiteOpen
+                    ? "ONLINE & ON-SPOT REGISTRATION OPEN"
+                    : onlineOpen
+                      ? "ONLINE REGISTRATION OPEN"
+                      : onsiteOpen
+                        ? "ON-SPOT REGISTRATION OPEN"
+                        : "REGISTRATION STATUS CLOSED"}
                 </span>
               </span>
               <span className="h-3 w-px bg-line-strong" aria-hidden="true" />
@@ -85,7 +93,7 @@ export function Hero({ stats }: { stats: Stats | null }) {
               <span className="font-mono text-xs text-mut">Teams of 2–4</span>
             </div>
 
-            {open && onlineLeft <= 5 && (
+            {onlineOpen && onlineLeft <= 5 && (
               <p className="font-mono text-[11px] tracking-[0.1em] text-gold" role="status">
                 ONLY {onlineLeft} ONLINE SEAT{onlineLeft === 1 ? "" : "S"} LEFT
               </p>
