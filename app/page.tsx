@@ -2,7 +2,8 @@ import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { LiveStatus } from "@/components/LiveStatus";
 import { RegisterOptions } from "@/components/RegisterOptions";
-import { HowItWorks } from "@/components/HowItWorks";
+import { Domains } from "@/components/Domains";
+import { About } from "@/components/About";
 import { TeamFee } from "@/components/TeamFee";
 import { EventInfo } from "@/components/EventInfo";
 import { Faq } from "@/components/Faq";
@@ -30,7 +31,8 @@ export default async function Home() {
         <Hero stats={initial} />
         <LiveStatus initial={initial} />
         <RegisterOptions stats={initial} />
-        <HowItWorks />
+        <About />
+        <Domains />
         <TeamFee />
         <EventInfo />
         <Faq />

@@ -272,7 +272,7 @@ export async function getRegistrationByPublicId(
   return {
     ...row,
     fee_per_head: Number(row.fee_per_head),
-    upi_id: map.get("upi_id") ?? "7449007050@ybl",
+    upi_id: map.get("upi_id") ?? "prathipa1991-1@okaxis",
     payee_name: map.get("payee_name") ?? "HACKATHON",
     member_names: memberRows.map((m) => m.member_name),
   };

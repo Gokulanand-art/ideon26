@@ -27,17 +27,18 @@ function boolEnv(key: string, fallback: boolean): boolean {
 }
 
 export const config = {
-  eventName: env("EVENT_NAME", "Hackathon 2026"),
-  eventTagline: env("EVENT_TAGLINE", "Build. Create. Innovate."),
+  eventName: env("EVENT_NAME", "IDEON'26"),
+  eventType: env("EVENT_TYPE", "HACKATHON 2026"),
+  eventTagline: env("EVENT_TAGLINE", "Innovate. Build. Impact."),
   eventDate: env("EVENT_DATE", "TBA"),
   eventEndDate: env("EVENT_END_DATE", ""),
-  eventVenue: env("EVENT_VENUE", "TBA"),
+  eventVenue: env("EVENT_VENUE", ""),
   eventDescription: env(
     "EVENT_DESCRIPTION",
-    "A high-energy hackathon for builders, creators and problem solvers. Form a team, pick a problem, and build something extraordinary in 24 hours. Compete online from anywhere in the world or join us on-site for the full experience.",
+    "IDEON'26 is the official hackathon of Excel Engineering College, organised by the Department of Computer Science and Business System and the Department of Artificial Intelligence and Machine Learning. Student teams of 2–4 come together to build working solutions across six technology domains.",
   ),
-  eventDuration: env("EVENT_DURATION", "24 hours"),
-  eventPrize: env("EVENT_PRIZE", "Cash prizes, swag & internship opportunities"),
+  eventDuration: env("EVENT_DURATION", ""),
+  eventPrize: env("EVENT_PRIZE", ""),
 
   onlineCapacity: intEnv("ONLINE_CAPACITY", 20),
   onsiteCapacity: intEnv("ONSITE_CAPACITY", 10),
@@ -45,10 +46,11 @@ export const config = {
 
   // Paid entry: ₹fee per head. Team total = team_size × FEE_PER_HEAD,
   // computed server-side. Online teams pay via UPI; on-site teams pay at the
-  // venue.
+  // venue. The raw UPI ID is used only inside the payment implementation —
+  // it is never rendered on the public website.
   feePerHead: intEnv("FEE_PER_HEAD", 150),
-  upiId: env("UPI_ID", "7449007050@ybl"),
-  payeeName: env("PAYEE_NAME", "HACKATHON"),
+  upiId: env("UPI_ID", "prathipa1991-1@okaxis"),
+  payeeName: env("PAYEE_NAME", "IDEON26"),
 
   registrationOpen: boolEnv("REGISTRATION_OPEN", true),
 
@@ -57,7 +59,14 @@ export const config = {
   // only online registration is available unless explicitly enabled.
   onsiteRegistrationOpen: boolEnv("ONSITE_REGISTRATION_OPEN", false),
 
-  regIdPrefix: env("REG_ID_PREFIX", "HK26"),
+  regIdPrefix: env("REG_ID_PREFIX", "IDEON26"),
+
+  // Organizing institution (public-facing identity).
+  collegeName: env("COLLEGE_NAME", "Excel Engineering College (Autonomous)"),
+  departmentNames: env(
+    "DEPARTMENT_NAMES",
+    "Department of Computer Science and Business System & Artificial Intelligence and Machine Learning",
+  ),
 
   // Admin auth
   adminUsername: env("ADMIN_USERNAME", "admin"),

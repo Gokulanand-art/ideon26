@@ -20,26 +20,26 @@ const grotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: `${config.eventName} · Register Online`,
+    default: `${config.eventName} · ${config.eventType} — Register Online`,
     template: `%s · ${config.eventName}`,
   },
-  description: `${config.eventName}: teams of 2–4, ₹${config.feePerHead}/participant, paid by UPI. Online registration open — ${config.onlineCapacity} participant seats. Live seat availability with instant confirmation.`,
-  keywords: ["hackathon", "hackathon 2026", "register", "upcoming hackathon", "tech event"],
+  description: `${config.eventName} — ${config.eventType}, organized by ${config.collegeName} (${config.departmentNames}). Teams of 2–4, ₹${config.feePerHead}/participant, paid by UPI. Online registration open — ${config.onlineCapacity} participant seats. Live seat availability with instant confirmation.`,
+  keywords: ["hackathon", "hackathon 2026", "ideon", "ideon 26", "register", "tech event", "student hackathon"],
   openGraph: {
-    title: `${config.eventName} · Register Online`,
-    description: `Teams of 2–4 · ₹${config.feePerHead}/participant · UPI payment. Online registration is open, on-site registration is closed.`,
+    title: `${config.eventName} · ${config.eventType} — Register Online`,
+    description: `Teams of 2–4 · ₹${config.feePerHead}/participant · UPI payment. Online registration is open, on-spot registration is closed.`,
     type: "website",
     url: config.publicUrl,
-    siteName: config.eventName,
+    siteName: `${config.eventName} · ${config.eventType}`,
     locale: "en_IN",
   },
-  twitter: { card: "summary_large_image", title: `${config.eventName} · Register Online` },
+  twitter: { card: "summary_large_image", title: `${config.eventName} · ${config.eventType} — Register Online` },
   robots: { index: true, follow: true },
   icons: { icon: "/favicon.ico" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0c0f",
+  themeColor: "#05070e",
   colorScheme: "dark",
 };
 

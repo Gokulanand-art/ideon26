@@ -2,41 +2,51 @@ import Link from "next/link";
 import { config } from "@/lib/config";
 import type { Stats } from "@/lib/stats";
 
+/**
+ * IDEON'26 hero: institution → departments → event name → status → CTA.
+ * The live status text is explicit ("ONLINE REGISTRATION OPEN") so it is
+ * readable with or without color.
+ */
 export function Hero({ stats }: { stats: Stats | null }) {
   const open = stats?.registrationOpen === true && !stats?.onlineFull;
-  const capacity = stats?.onlineCapacity ?? config.onlineCapacity;
+  const onlineLeft = stats?.onlineSeatsLeft ?? config.onlineCapacity;
 
   return (
     <section id="top" className="relative overflow-hidden">
       <div className="bg-grid pointer-events-none absolute inset-0" aria-hidden="true" />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(52,211,122,0.07),transparent)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(56,189,248,0.1),transparent)]"
         aria-hidden="true"
       />
-      <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:px-8">
+      <div
+        className="pointer-events-none absolute -right-40 top-24 h-96 w-96 rounded-full bg-violet/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-gold/[0.06] blur-3xl"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-14 sm:px-6 sm:pt-20 lg:px-8">
         <div className="rise mx-auto max-w-3xl text-center">
           <p className="kicker">
-            <span className="kicker-dot">●</span> {config.eventName} · {config.eventDate}
+            <span className="kicker-dot">●</span> {config.collegeName}
           </p>
-          <h1 className="display mt-5 text-5xl leading-[1.02] text-fg sm:text-6xl lg:text-7xl">
-            BUILD<span className="text-signal">.</span> CREATE
-            <span className="text-signal">.</span> INNOVATE
-            <span className="text-signal">.</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-mut sm:text-lg">
-            Bring your team. Build something meaningful. Compete with other
-            creators.
+          <p className="mt-2 text-xs leading-relaxed tracking-wide text-mut sm:text-sm">
+            Organised by {config.departmentNames}
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[13px] text-mut">
-            <span>
-              <span className="text-fg">₹{config.feePerHead}</span> / participant
-            </span>
-            <span className="h-1 w-1 rounded-full bg-dim" aria-hidden="true" />
-            <span>
-              Teams of <span className="text-fg">2–4</span>
-            </span>
-          </div>
+          <h1 className="display mt-8 text-6xl font-bold leading-none tracking-tight sm:text-7xl lg:text-8xl">
+            <span className="text-grad">IDEON&apos;26</span>
+          </h1>
+          <p className="display mt-3 text-xl font-semibold tracking-[0.3em] text-fg sm:text-2xl">
+            HACKATHON 2026
+          </p>
+
+          <p className="mt-6 font-mono text-[13px] tracking-[0.24em] text-mut sm:text-sm">
+            INNOVATE <span className="text-signal">•</span> BUILD{" "}
+            <span className="text-signal">•</span> IMPACT
+          </p>
 
           <div className="mt-9 flex flex-col items-center gap-4">
             {open ? (
@@ -60,16 +70,26 @@ export function Hero({ stats }: { stats: Stats | null }) {
               </div>
             )}
 
-            <div className="flex items-center gap-2.5 rounded-full border border-line bg-panel px-4 py-2">
-              <span className="live-dot" aria-hidden="true" />
-              <span className="font-mono text-xs font-semibold tracking-[0.14em] text-signal">
-                REGISTRATION LIVE
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-full border border-line bg-panel px-5 py-2.5">
+              <span className="flex items-center gap-2.5">
+                <span className="live-dot" aria-hidden="true" />
+                <span className="font-mono text-xs font-semibold tracking-[0.14em] text-signal">
+                  {open ? "ONLINE REGISTRATION OPEN" : "REGISTRATION STATUS CLOSED"}
+                </span>
               </span>
               <span className="h-3 w-px bg-line-strong" aria-hidden="true" />
               <span className="font-mono text-xs text-mut">
-                ONLINE OPEN · {capacity} participant capacity
+                ₹{config.feePerHead} / participant
               </span>
+              <span className="h-3 w-px bg-line-strong" aria-hidden="true" />
+              <span className="font-mono text-xs text-mut">Teams of 2–4</span>
             </div>
+
+            {open && onlineLeft <= 5 && (
+              <p className="font-mono text-[11px] tracking-[0.1em] text-gold" role="status">
+                ONLY {onlineLeft} ONLINE SEAT{onlineLeft === 1 ? "" : "S"} LEFT
+              </p>
+            )}
           </div>
         </div>
       </div>

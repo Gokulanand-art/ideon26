@@ -16,7 +16,6 @@ export interface ConfirmationData {
   amount: number;
   amount_display: string;
   fee_per_head: number;
-  upi_id: string;
   payee_name: string;
   payment_status: string;
   txn_id: string | null;
@@ -208,7 +207,7 @@ export function ConfirmationPanel({ data }: { data: ConfirmationData }) {
             </span>
           </div>
           <p className="mt-1.5 font-mono text-[11px] text-mut">
-            PAY TO · <span className="text-fg">{data.upi_id}</span> ({data.payee_name})
+            PAY TO · <span className="text-fg">{data.payee_name}</span>
           </p>
 
           {paid ? (
@@ -276,7 +275,7 @@ export function ConfirmationPanel({ data }: { data: ConfirmationData }) {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={data.qr_data_url}
-                      alt={`QR code to pay ${formatAmount(data.amount)} via UPI to ${data.upi_id}`}
+                      alt={`QR code to pay ${formatAmount(data.amount)} via UPI`}
                       width={128}
                       height={128}
                       className="rounded-lg border border-line bg-white p-1.5"

@@ -9,7 +9,7 @@ export function FinalCta({ open }: { open: boolean }) {
           <span className="kicker-dot">●</span> {config.eventName}
         </p>
         <h2 className="display mt-4 text-4xl text-fg sm:text-5xl">
-          READY TO BUILD<span className="text-signal">?</span>
+          READY TO BUILD THE FUTURE<span className="text-signal">?</span>
         </h2>
         <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-mut">
           {open

@@ -11,19 +11,19 @@ const FAQS = [
   },
   {
     q: "How do I pay?",
-    a: `By UPI to ${config.upiId}. After registering you get a payment screen with a Pay button and a QR code, both pre-filled with the exact amount. You complete the payment inside your own UPI app.`,
+    a: "By UPI. The payment screen shows the exact amount with a Pay button and QR code; you complete the payment inside your own UPI app.",
   },
   {
     q: "How is my payment verified?",
     a: "After paying, submit the UPI transaction ID shown in your UPI app. An organizer verifies it and confirms your registration — your seat is held in the meantime.",
   },
   {
-    q: "Is on-site registration available?",
-    a: `Yes — on-site registration is open. It works exactly like online registration, except there is no online payment: the fee (₹${config.feePerHead} per participant) is collected at the venue when you arrive.`,
+    q: "Is on-spot registration available?",
+    a: `Not right now. On-spot registration is closed — only online registration is open.`,
   },
   {
-    q: "When does registration close?",
-    a: `Online registration closes when all ${config.onlineCapacity} online participant seats are filled, or at the event cut-off, whichever comes first. Watch the live status above.`,
+    q: "When does online registration close?",
+    a: `When all ${config.onlineCapacity} online participant seats are filled. Watch the live status on this page for the current count.`,
   },
   {
     q: "Can I change my team size or members after registering?",

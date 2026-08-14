@@ -1,26 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  /* ---- HK26 design system -----------------------------------------------
-     Industrial / technical / minimal. Near-black neutral base, one signal
-     green for OPEN/primary actions, mono typographic labels, hairline borders.
-     No gradient walls, no glassmorphism, no purple/cyan neon. */
+  /* ---- IDEON'26 design system ---------------------------------------------
+     Premium dark futuristic: deep navy-black base, electric cyan primary,
+     violet/purple gradients, gold accents from the brochure identity.
+     Mono typographic labels, hairline borders, restrained glow. */
 
-  --color-ink: #0a0c0f;          /* page background            */
-  --color-panel: #101318;        /* raised surface             */
-  --color-panel-2: #151a21;      /* elevated surface           */
-  --color-line: #1f252e;         /* hairline borders           */
-  --color-line-strong: #2a323e;
+  --color-ink: #05070e;          /* page background (deep navy-black)  */
+  --color-panel: #0a0f1d;        /* raised surface                     */
+  --color-panel-2: #101830;      /* elevated surface                   */
+  --color-line: #1a2440;         /* hairline borders                   */
+  --color-line-strong: #263456;
 
-  --color-fg: #eef1f6;           /* primary text               */
-  --color-mut: #8a94a6;          /* secondary text             */
-  --color-dim: #5b6474;          /* tertiary text              */
+  --color-fg: #eef2ff;           /* primary text                       */
+  --color-mut: #93a0c4;          /* secondary text                     */
+  --color-dim: #5c6a8f;          /* tertiary text                      */
 
-  --color-signal: #34d37a;       /* OPEN / primary CTA         */
-  --color-signal-ink: #04170c;   /* text on signal             */
-  --color-signal-dim: #1d8f53;
-  --color-warn: #f2b03d;         /* pending                    */
-  --color-bad: #f0635f;          /* closed / errors            */
+  --color-signal: #38bdf8;       /* electric cyan — OPEN / primary CTA */
+  --color-signal-ink: #04202c;   /* text on signal                     */
+  --color-signal-dim: #0ea5e9;
+  --color-violet: #8b5cf6;       /* purple gradient accent             */
+  --color-gold: #f5c242;         /* brochure-inspired gold accent      */
+  --color-warn: #fbbf24;         /* pending                            */
+  --color-bad: #f87171;          /* closed / errors                    */
 
   --font-display: var(--font-gt), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -44,7 +46,7 @@ body {
 }
 
 ::selection {
-  background: rgba(52, 211, 122, 0.25);
+  background: rgba(56, 189, 248, 0.28);
 }
 
 /* ---- Typographic helpers ------------------------------------------------ */
@@ -101,12 +103,12 @@ body {
 }
 
 .btn-primary {
-  background: var(--color-signal);
-  color: var(--color-signal-ink);
-  box-shadow: 0 0 0 1px rgba(52, 211, 122, 0.4), 0 8px 28px -12px rgba(52, 211, 122, 0.55);
+  background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+  color: #04121f;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4), 0 10px 34px -12px rgba(56, 189, 248, 0.55);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #43e08a;
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 .btn-primary:active:not(:disabled) {
@@ -134,11 +136,11 @@ body {
 
 .btn-danger {
   background: transparent;
-  border: 1px solid rgba(240, 99, 95, 0.4);
-  color: #f39693;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
 }
 .btn-danger:hover:not(:disabled) {
-  background: rgba(240, 99, 95, 0.12);
+  background: rgba(248, 113, 113, 0.12);
 }
 
 .btn-disabled {
@@ -153,7 +155,7 @@ body {
 
 .field {
   width: 100%;
-  background: #0d1015;
+  background: #080d1a;
   border: 1px solid var(--color-line-strong);
   border-radius: 8px;
   color: var(--color-fg);
@@ -165,21 +167,21 @@ body {
   color: var(--color-dim);
 }
 .field:hover:not(:disabled) {
-  border-color: #374152;
+  border-color: #33415f;
 }
 .field:focus-visible,
 .field:focus {
   outline: none;
-  border-color: rgba(52, 211, 122, 0.65);
-  box-shadow: 0 0 0 3px rgba(52, 211, 122, 0.14);
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
 }
 .field[aria-invalid="true"] {
-  border-color: rgba(240, 99, 95, 0.65);
-  box-shadow: 0 0 0 3px rgba(240, 99, 95, 0.12);
+  border-color: rgba(248, 113, 113, 0.65);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
 }
 select.field {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a94a6' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2393a0c4' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85rem center;
   padding-right: 2.25rem;
@@ -204,23 +206,23 @@ select.field {
 
 .chip-open {
   color: var(--color-signal);
-  border-color: rgba(52, 211, 122, 0.35);
-  background: rgba(52, 211, 122, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.08);
 }
 .chip-closed {
   color: var(--color-bad);
-  border-color: rgba(240, 99, 95, 0.3);
-  background: rgba(240, 99, 95, 0.07);
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.07);
 }
 .chip-pending {
   color: var(--color-warn);
-  border-color: rgba(242, 176, 61, 0.3);
-  background: rgba(242, 176, 61, 0.07);
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.07);
 }
 .chip-paid {
   color: var(--color-signal);
-  border-color: rgba(52, 211, 122, 0.35);
-  background: rgba(52, 211, 122, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.08);
 }
 .chip-muted {
   color: var(--color-mut);
@@ -243,7 +245,7 @@ select.field {
   position: absolute;
   inset: -4px;
   border-radius: 999px;
-  border: 1px solid rgba(52, 211, 122, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.5);
   animation: live-ring 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 @keyframes live-ring {
@@ -271,11 +273,23 @@ select.field {
 /* Subtle hero grid backdrop. */
 .bg-grid {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    linear-gradient(to right, rgba(120, 150, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 150, 255, 0.05) 1px, transparent 1px);
   background-size: 56px 56px;
   -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 0%, #000 30%, transparent 100%);
   mask-image: radial-gradient(ellipse 75% 65% at 50% 0%, #000 30%, transparent 100%);
+}
+
+/* IDEON'26 brand helpers */
+.text-grad {
+  background: linear-gradient(100deg, #7dd3fc 0%, #38bdf8 35%, #a78bfa 75%, #f5c242 115%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glow-cyan {
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.28), 0 24px 70px -30px rgba(56, 189, 248, 0.4);
 }
 
 /* ---- Focus / a11y -------------------------------------------------------- */

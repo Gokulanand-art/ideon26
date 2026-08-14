@@ -7,14 +7,7 @@ import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-export default async function RegisterPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ mode?: string }>;
-}) {
-  const { mode } = await searchParams;
-  const fixedMode = mode === "onsite" ? "ONSITE" : mode === "online" ? "ONLINE" : null;
-
+export default async function RegisterPage() {
   let initial = null;
   let statsError = false;
   try {
@@ -25,19 +18,7 @@ export default async function RegisterPage({
   }
 
   const onlineLeft = initial?.onlineSeatsLeft ?? config.onlineCapacity;
-  const onsiteLeft = initial?.onsiteSeatsLeft ?? config.onsiteCapacity;
-  const open =
-    initial?.registrationOpen === true &&
-    (fixedMode === "ONSITE"
-      ? initial?.onsiteOpen === true && !initial?.onsiteFull
-      : fixedMode === "ONLINE"
-        ? !initial?.onlineFull
-        : !initial?.onlineFull || (initial?.onsiteOpen === true && !initial?.onsiteFull));
-
-  const title = fixedMode === "ONSITE" ? "ON-SITE REGISTRATION" : "REGISTER YOUR TEAM";
-  const subtitle = fixedMode === "ONSITE"
-    ? `Teams of 2–4 · ₹${config.feePerHead} per participant · pay at the venue · ${onsiteLeft} on-site seats left.`
-    : `Teams of 2–4 · ₹${config.feePerHead} per participant · UPI payment or pay at the venue · ${onlineLeft} online / ${onsiteLeft} on-site seats left.`;
+  const open = initial?.registrationOpen === true && !initial?.onlineFull;
 
   return (
     <>
@@ -46,14 +27,15 @@ export default async function RegisterPage({
         <div className="mx-auto max-w-6xl px-4 pb-20 pt-12 sm:px-6 sm:pt-16 lg:px-8">
           <div className="text-center">
             <p className="kicker">
-              <span className="kicker-dot">●</span> {config.eventName} ·{" "}
-              {fixedMode === "ONSITE" ? "On-site registration" : "Registration"}
+              <span className="kicker-dot">●</span> {config.eventName} · Online registration
             </p>
             <h1 className="display mt-3 text-4xl text-fg sm:text-5xl">
-              {title}
-              <span className="text-signal">.</span>
+              REGISTER YOUR TEAM<span className="text-signal">.</span>
             </h1>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-mut">{subtitle}</p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-mut">
+              Teams of 2–4 · ₹{config.feePerHead} per participant · secure UPI
+              payment · {onlineLeft} online participant seats left.
+            </p>
           </div>
 
           <div className="mt-12">
@@ -67,19 +49,15 @@ export default async function RegisterPage({
             ) : !open ? (
               <div className="mx-auto max-w-xl rounded-xl border border-line bg-panel px-6 py-12 text-center">
                 <p className="font-mono text-xs font-bold tracking-[0.2em] text-bad">
-                  ● REGISTRATION CLOSED
+                  ● ONLINE REGISTRATION CLOSED
                 </p>
                 <h2 className="display mt-4 text-2xl text-fg">
-                  {fixedMode === "ONSITE"
-                    ? "On-site registration is currently closed"
-                    : "Registration is currently closed"}
+                  Online registration is currently closed
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-mut">
-                  {fixedMode === "ONSITE"
-                    ? initial?.onsiteFull
-                      ? `All ${config.onsiteCapacity} on-site participant seats have been filled.`
-                      : "The organizers have paused on-site registration."
-                    : "All seats have been filled or the organizers have paused registration."}{" "}
+                  {initial?.onlineFull
+                    ? `All ${config.onlineCapacity} online participant seats have been filled.`
+                    : "The organizers have paused online registration."}{" "}
                   Check the homepage for live seat availability.
                 </p>
                 <Link href="/" className="btn btn-ghost mt-7 px-6 py-2.5 text-sm">
@@ -87,12 +65,7 @@ export default async function RegisterPage({
                 </Link>
               </div>
             ) : (
-              <RegisterWizard
-                feePerHead={config.feePerHead}
-                onlineLeft={onlineLeft}
-                onsiteLeft={onsiteLeft}
-                initialMode={fixedMode ?? undefined}
-              />
+              <RegisterWizard feePerHead={config.feePerHead} onlineLeft={onlineLeft} />
             )}
           </div>
         </div>

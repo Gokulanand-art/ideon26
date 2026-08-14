@@ -90,11 +90,11 @@ async function readSettings(q: QueryFn): Promise<Settings> {
     onlineCap: Number(map.get("online_capacity") ?? "20"),
     onsiteCap: Number(map.get("onsite_capacity") ?? "10"),
     totalCap: Number(map.get("total_capacity") ?? "30"),
-    regIdPrefix: map.get("reg_id_prefix") ?? "HK26",
+    regIdPrefix: map.get("reg_id_prefix") ?? "IDEON26",
     registrationOpen: /^(1|true|yes|on)$/i.test(map.get("registration_open") ?? "true"),
     onsiteRegistrationOpen: /^(1|true|yes|on)$/i.test(map.get("onsite_registration_open") ?? "false"),
     feePerHead: Number(map.get("fee_per_head") ?? "150"),
-    upiId: map.get("upi_id") ?? "7449007050@ybl",
+    upiId: map.get("upi_id") ?? "prathipa1991-1@okaxis",
     payeeName: map.get("payee_name") ?? "HACKATHON",
   };
 }
@@ -236,7 +236,7 @@ export async function registerParticipant(
       `UPDATE id_sequences SET value = value + 1 WHERE name = 'registration' RETURNING value`,
     );
     const seq = Number(seqRows[0].value);
-    // Team registration id, e.g. HK26-T001.
+    // Team registration id, e.g. IDEON26-T001.
     const registrationId = `${settings.regIdPrefix}-T${String(seq).padStart(3, "0")}`;
 
     // 7. Insert the participant row. The capacity trigger is the DB-level backstop.

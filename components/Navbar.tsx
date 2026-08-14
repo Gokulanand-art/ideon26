@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { config } from "@/lib/config";
 
+/**
+ * Primary navigation for IDEON'26. The Register Online button is only
+ * rendered as an active link while online registration is open.
+ */
 export function Navbar({ open }: { open: boolean }) {
   const [menu, setMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -20,7 +24,7 @@ export function Navbar({ open }: { open: boolean }) {
   const links = [
     { href: "/#top", label: "Home" },
     { href: "/#about", label: "About" },
-    { href: "/#how", label: "How It Works" },
+    { href: "/#domains", label: "Domains" },
     { href: "/#faq", label: "FAQ" },
   ];
 
@@ -33,7 +37,7 @@ export function Navbar({ open }: { open: boolean }) {
           aria-label={`${config.eventName} — home`}
         >
           <span className="grid h-8 w-8 place-items-center rounded-md border border-signal/40 bg-signal/10 font-mono text-[13px] font-bold text-signal">
-            HK
+            ID
           </span>
           <span className="font-mono text-[13px] font-semibold tracking-[0.18em] text-fg">
             {config.eventName.toUpperCase()}
@@ -55,7 +59,7 @@ export function Navbar({ open }: { open: boolean }) {
             aria-disabled={!open}
             className={`ml-2 rounded-md px-4 py-2 text-sm font-semibold ${
               open
-                ? "bg-signal text-signal-ink shadow-[0_0_0_1px_rgba(52,211,122,0.4),0_8px_28px_-12px_rgba(52,211,122,0.55)] transition hover:brightness-110"
+                ? "bg-signal text-signal-ink shadow-[0_0_0_1px_rgba(56,189,248,0.4),0_8px_28px_-12px_rgba(56,189,248,0.55)] transition hover:brightness-110"
                 : "cursor-not-allowed border border-line bg-transparent text-dim"
             }`}
           >

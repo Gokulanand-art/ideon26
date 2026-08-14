@@ -45,7 +45,6 @@ export default async function SuccessPage({
           amount: row.amount,
           amount_display: formatAmount(row.amount),
           fee_per_head: row.fee_per_head,
-          upi_id: row.upi_id,
           payee_name: row.payee_name,
           payment_status: row.payment_status,
           txn_id: row.txn_id,

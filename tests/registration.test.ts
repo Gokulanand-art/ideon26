@@ -19,8 +19,8 @@ describe("registerParticipant", () => {
       { adapter: db, broadcast: false },
     );
 
-    expect(a.registration_id).toMatch(/^HK26-T\d{3}$/);
-    expect(b.registration_id).toMatch(/^HK26-T\d{3}$/);
+    expect(a.registration_id).toMatch(/^IDEON26-T\d{3}$/);
+    expect(b.registration_id).toMatch(/^IDEON26-T\d{3}$/);
     expect(a.registration_id).not.toBe(b.registration_id);
 
     // Website registration: PENDING until the payment is verified.
@@ -31,7 +31,7 @@ describe("registerParticipant", () => {
     expect(a.amount).toBe(300);
     expect(a.fee_per_head).toBe(150);
     expect(b.amount).toBe(450);
-    expect(a.upi_id).toBe("7449007050@ybl");
+    expect(a.upi_id).toBe("prathipa1991-1@okaxis");
     expect(a.payee_name).toBeTruthy();
 
     // Member records: leader + (team_size − 1) members.
@@ -130,7 +130,7 @@ describe("payment flow", () => {
   it("rejects submitting a txn id for an unknown registration", async () => {
     const db = await freshDb();
     await expect(
-      submitPaymentTxn("HK26-9999", "410298330947", { adapter: db }),
+      submitPaymentTxn("IDEON26-9999", "410298330947", { adapter: db }),
     ).rejects.toMatchObject({ code: "NOT_FOUND", status: 404 });
   });
 
@@ -418,7 +418,7 @@ describe("capacity enforcement (participants, not teams)", () => {
     await expect(
       db.query(
         `INSERT INTO participants (registration_id, full_name, email, phone, college, department, year, registration_type, team_size)
-         VALUES ('HK26-9999','X','s11@x.com','555','C','D','1','ONSITE',2)`,
+         VALUES ('IDEON26-9999','X','s11@x.com','555','C','D','1','ONSITE',2)`,
       ),
     ).rejects.toMatchObject({ code: "45000" });
   });

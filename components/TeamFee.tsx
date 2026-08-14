@@ -32,8 +32,8 @@ export function TeamFee() {
             </li>
             <li className="flex gap-3">
               <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-signal" aria-hidden="true" />
-              Payment is UPI only, to{" "}
-              <span className="font-mono text-fg">{config.upiId}</span>.
+              Payment is UPI only — the exact amount is shown on the payment
+              screen and completed inside your own UPI app.
             </li>
             <li className="flex gap-3">
               <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-signal" aria-hidden="true" />

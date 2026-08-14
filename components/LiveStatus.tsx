@@ -65,24 +65,24 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
   const tiles = [
     {
       key: "total",
-      label: "TOTAL",
+      label: "TOTAL PARTICIPANTS",
       used: stats?.total ?? 0,
       cap: stats?.totalCapacity ?? 30,
-      note: `${stats?.totalSeatsLeft ?? 30} participants left`,
+      note: `${stats?.totalSeatsLeft ?? 30} seats left`,
     },
     {
       key: "online",
-      label: "ONLINE",
+      label: "ONLINE PARTICIPANTS",
       used: stats?.online ?? 0,
       cap: stats?.onlineCapacity ?? 20,
-      note: `${stats?.onlineSeatsLeft ?? 20} participants left`,
+      note: `${stats?.onlineSeatsLeft ?? 20} seats left`,
     },
     {
       key: "onsite",
-      label: "ON-SITE",
+      label: "ON-SPOT PARTICIPANTS",
       used: stats?.onsite ?? 0,
       cap: stats?.onsiteCapacity ?? 10,
-      note: `${stats?.onsiteSeatsLeft ?? 10} participants left`,
+      note: `${stats?.onsiteSeatsLeft ?? 10} seats left`,
     },
   ];
 
@@ -95,10 +95,10 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
               <span className="kicker-dot">●</span> Live data
             </p>
             <h2 className="display mt-3 text-3xl text-fg sm:text-4xl">
-              LIVE REGISTRATION STATUS
+              REGISTRATION IS LIVE
             </h2>
             <p className="mt-3 text-sm text-mut">
-              Live participant availability. Updated automatically.
+              Live participant availability — updated in real time.
             </p>
           </div>
           <span
@@ -119,7 +119,7 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
                 <div className="flex items-center justify-between">
                   <span className="kicker">{t.label}</span>
                   <span className="font-mono text-[10px] tracking-[0.14em] text-dim">
-                    PARTICIPANTS
+                    SEATS
                   </span>
                 </div>
                 <p className="mt-5 font-mono text-4xl font-bold tracking-tight text-fg">
@@ -132,7 +132,7 @@ export function LiveStatus({ initial }: { initial: Stats | null }) {
                   aria-valuenow={t.used}
                   aria-valuemin={0}
                   aria-valuemax={t.cap}
-                  aria-label={`${t.label} participants used`}
+                  aria-label={`${t.label} seats used`}
                 >
                   <div
                     className={`grow h-full rounded-full ${

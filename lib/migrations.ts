@@ -33,9 +33,9 @@ INSERT INTO settings(key, value) VALUES
   ('total_capacity',      '30'),
   ('registration_open',   'true'),
   ('onsite_registration_open', 'false'),
-  ('reg_id_prefix',       'HK26'),
+  ('reg_id_prefix',       'IDEON26'),
   ('fee_per_head',        '150'),
-  ('upi_id',              '7449007050@ybl'),
+  ('upi_id',              'prathipa1991-1@okaxis'),
   ('payee_name',          'HACKATHON')
 ON CONFLICT (key) DO NOTHING;
 
