@@ -375,7 +375,7 @@ export async function runAdminAction(
   }
 
   // Google Sheets sync (best-effort).
-  updateRegistrationInSheets(result.registration_id, {
+  updateRegistrationInSheets(result.registration_id, result.registration_type, {
     status: result.status,
     payment_status: result.payment_status,
     txn_id: result.txn_id,

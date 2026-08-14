@@ -402,7 +402,7 @@ export async function submitPaymentTxn(
        RETURNING status AS payment_status`,
       [txnId, reg.id],
     );
-    updateRegistrationInSheets(registrationId, {
+    updateRegistrationInSheets(registrationId, reg.registration_type, {
       payment_status: upd[0].payment_status,
       txn_id: txnId,
     });
