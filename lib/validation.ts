@@ -43,19 +43,21 @@ export const registerSchema = z.object({
     .toLowerCase()
     .email("Please enter a valid email address.")
     .max(254, "Email is too long."),
+  // `error` covers the missing/wrong-type case too, so an omitted field reads
+  // as "Phone number is required." rather than Zod's raw type message.
   phone: z
-    .string()
+    .string({ error: "Phone number is required." })
     .trim()
     .min(1, "Phone number is required.")
     .max(20, "Phone number is too long.")
     .regex(phoneRegex, "Please enter a valid phone number."),
   college: z
-    .string()
+    .string({ error: "College name is required." })
     .trim()
     .min(2, "College name must be at least 2 characters.")
     .max(200, "College name is too long."),
   department: z
-    .string()
+    .string({ error: "Department is required." })
     .trim()
     .min(2, "Department must be at least 2 characters.")
     .max(200, "Department is too long."),
