@@ -91,6 +91,23 @@ function doPost(e) {
   }
   if (data.token !== TOKEN) return json_({ ok: false, error: "unauthorized" });
 
+  // Wipe every data row (headers survive) for one channel, or both when
+  // `scope` is "all". Used to reset the sheets after a test run.
+  if (data.action === "clear") {
+    var targets = String(data.scope).toLowerCase() === "all"
+      ? ["ONLINE", "ONSITE"]
+      : [data.registration_type];
+    var cleared = {};
+    for (var t = 0; t < targets.length; t++) {
+      var target = getSpreadsheet_(targets[t]);
+      var tab = ensureTab_(target);
+      var last = tab.getLastRow();
+      if (last > 1) tab.deleteRows(2, last - 1);
+      cleared[targets[t]] = Math.max(0, last - 1);
+    }
+    return json_({ ok: true, cleared: cleared });
+  }
+
   var ss = getSpreadsheet_(data.registration_type);
   var sheet = ensureTab_(ss);
 
