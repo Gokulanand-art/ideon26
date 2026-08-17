@@ -50,7 +50,7 @@ export function About() {
                 IDEON&apos;26
               </p>
               <p className="mt-2 text-sm leading-relaxed text-mut">
-                The flagship student hackathon of the Department of CSBS &amp;
+                The flagship student project expo of the Department of CSBS &amp;
                 AI/ML.
               </p>
             </div>

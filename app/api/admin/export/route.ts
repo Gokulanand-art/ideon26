@@ -38,7 +38,7 @@ export async function GET() {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="hackathon-registrations-${stamp}.csv"`,
+      "Content-Disposition": `attachment; filename="ideon26-registrations-${stamp}.csv"`,
       "Cache-Control": "no-store",
     },
   });

@@ -42,7 +42,7 @@ export function Hero({ stats }: { stats: Stats | null }) {
             <span className="text-grad">IDEON&apos;26</span>
           </h1>
           <p className="display mt-3 text-xl font-semibold tracking-[0.3em] text-fg sm:text-2xl">
-            HACKATHON 2026
+            {config.eventType}
           </p>
 
           <p className="mt-6 font-mono text-[13px] tracking-[0.24em] text-mut sm:text-sm">

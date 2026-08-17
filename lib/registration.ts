@@ -95,7 +95,7 @@ async function readSettings(q: QueryFn): Promise<Settings> {
     onsiteRegistrationOpen: /^(1|true|yes|on)$/i.test(map.get("onsite_registration_open") ?? "false"),
     feePerHead: Number(map.get("fee_per_head") ?? "150"),
     upiId: map.get("upi_id") ?? "prathipa1991-1@okaxis",
-    payeeName: map.get("payee_name") ?? "HACKATHON",
+    payeeName: map.get("payee_name") ?? "IDEON26",
   };
 }
 

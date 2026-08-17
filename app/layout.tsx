@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: `%s · ${config.eventName}`,
   },
   description: `${config.eventName} — ${config.eventType}, organized by ${config.collegeName} (${config.departmentNames}). Teams of 2–4, ₹${config.feePerHead}/participant, paid by UPI (online) or at the venue (on-spot). Live slot availability with instant confirmation.`,
-  keywords: ["hackathon", "hackathon 2026", "ideon", "ideon 26", "register", "tech event", "student hackathon"],
+  keywords: ["project expo", "expo 2026", "ideon", "ideon 26", "register", "tech event", "student project expo"],
   openGraph: {
     title: `${config.eventName} · ${config.eventType} — Register Online`,
     description: `Teams of 2–4 · ₹${config.feePerHead}/participant · UPI payment (online) or pay at the venue (on-spot). Online & on-spot registration are open.`,

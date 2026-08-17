@@ -35,7 +35,7 @@ export interface DbAdapter {
 
 async function createPgliteAdapter(): Promise<DbAdapter> {
   const { PGlite } = await import("@electric-sql/pglite");
-  const dataDir = process.env.PGLITE_DATA_DIR || "./data/hackathon";
+  const dataDir = process.env.PGLITE_DATA_DIR || "./data/ideon26";
   if (dataDir && dataDir !== ":memory:") {
     mkdirSync(path.resolve(process.cwd(), dataDir), { recursive: true });
   }

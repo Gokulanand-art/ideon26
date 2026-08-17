@@ -38,7 +38,7 @@ INSERT INTO settings(key, value) VALUES
   ('reg_id_prefix',       'IDEON26'),
   ('fee_per_head',        '150'),
   ('upi_id',              'prathipa1991-1@okaxis'),
-  ('payee_name',          'HACKATHON')
+  ('payee_name',          'IDEON26')
 ON CONFLICT (key) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS id_sequences (

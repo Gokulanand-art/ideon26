@@ -28,14 +28,14 @@ function boolEnv(key: string, fallback: boolean): boolean {
 
 export const config = {
   eventName: env("EVENT_NAME", "IDEON'26"),
-  eventType: env("EVENT_TYPE", "HACKATHON 2026"),
+  eventType: env("EVENT_TYPE", "PROJECT EXPO 2026"),
   eventTagline: env("EVENT_TAGLINE", "Innovate. Build. Impact."),
   eventDate: env("EVENT_DATE", "TBA"),
   eventEndDate: env("EVENT_END_DATE", ""),
   eventVenue: env("EVENT_VENUE", ""),
   eventDescription: env(
     "EVENT_DESCRIPTION",
-    "IDEON'26 is the official hackathon of Excel Engineering College, organised by the Department of Computer Science and Business System and the Department of Artificial Intelligence and Machine Learning. Student teams of 2–4 come together to build working solutions across six technology domains.",
+    "IDEON'26 is the official project expo of Excel Engineering College, organised by the Department of Computer Science and Business System and the Department of Artificial Intelligence and Machine Learning. Student teams of 2–4 come together to build working solutions across six technology domains.",
   ),
   eventDuration: env("EVENT_DURATION", ""),
   eventPrize: env("EVENT_PRIZE", ""),
