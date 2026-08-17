@@ -8,6 +8,8 @@
  * best-effort and never blocks or fails the registration flow.
  */
 
+import { after } from "next/server";
+
 import { config } from "./config";
 
 export interface SheetsRow {
@@ -53,6 +55,15 @@ function enqueue(fn: () => Promise<void>): void {
   queue = queue.then(fn).catch((err) => {
     log("sync failed", (err as Error)?.message ?? err);
   });
+  // Callers deliberately do not await this queue, so on a long-lived server
+  // the webhook call simply finishes after the response. On serverless the
+  // invocation can be frozen the moment the response is sent, dropping the
+  // sync silently — `after` keeps it alive until the queue settles.
+  try {
+    after(() => queue);
+  } catch {
+    /* outside a request scope (tests, scripts): the chain still runs inline */
+  }
 }
 
 async function post(body: Record<string, unknown>): Promise<Record<string, unknown>> {
