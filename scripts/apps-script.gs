@@ -1,114 +1,174 @@
 /**
- * Hackathon registrations → Google Sheets (web app backend)
+ * IDEON'26 registrations → Google Sheets (web app backend)
  *
- * Creates one spreadsheet ("Hackathon 2026 — Registrations") with two tabs —
- * "Online" and "On-site" — and receives registration rows from the deployed
- * site via POST (JSON). Registration data is stored per tab.
+ * Creates TWO separate spreadsheets — one for Online registrations and one
+ * for On-site registrations — and receives rows from the deployed site via
+ * POST (JSON). Each spreadsheet holds a single "Registrations" tab; the
+ * webhook routes by `registration_type`.
  *
  * SETUP (one time):
- *   1. Open https://script.google.com → New project
- *   2. Replace TOKEN below with the same value you set as SHEETS_WEBHOOK_TOKEN
- *      on the server (any long random string).
- *   3. Paste this whole file, then Deploy → New deployment → Web app:
+ *   1. Sign in to the Google account that should OWN the spreadsheets.
+ *   2. Open https://script.google.com → New project.
+ *   3. Paste this whole file, then replace TOKEN below with the same value
+ *      you set as SHEETS_WEBHOOK_TOKEN on the server (any long random string).
+ *   4. Run the `setup` function once (Run ▸ setup). Approve the permission
+ *      prompt. The execution log prints both spreadsheet URLs.
+ *   5. Deploy ▸ New deployment ▸ Web app:
  *        - Execute as: Me
  *        - Who has access: Anyone
- *   4. Copy the web app URL (ends with /exec) → set it as SHEETS_WEBHOOK_URL.
- *   5. Open <url>?check in a browser once — it creates the spreadsheet and
- *      prints its link. Both tabs are auto-created with headers.
+ *   6. Copy the web app URL (ends with /exec) → set it as SHEETS_WEBHOOK_URL.
+ *
+ * Re-deploying after an edit: use Deploy ▸ Manage deployments ▸ edit ▸
+ * New version, so the /exec URL stays the same.
  */
 const TOKEN = "CHANGE_ME";
 
-const SPREADSHEET_NAME = "Hackathon 2026 — Registrations";
-const TAB_ONLINE = "Online";
-const TAB_ONSITE = "On-site";
+const SPREADSHEET_NAME_ONLINE = "IDEON'26 — Online Registrations";
+const SPREADSHEET_NAME_ONSITE = "IDEON'26 — On-site Registrations";
+const TAB_NAME = "Registrations";
 
-const HEADERS = [
-  "Registration ID", "Full Name", "Email", "Phone", "College", "Department",
-  "Year", "Team Name", "Team Size", "Members", "Type", "Status",
-  "Payment Status", "Amount (INR)", "UPI Txn ID", "Verified By", "Created At",
+/**
+ * Column order. `header` is what the organizer sees; `key` is the field the
+ * server actually sends (snake_case, see SheetsRow in lib/sheets.ts). Keeping
+ * them paired here is what prevents the two from drifting apart.
+ */
+const COLUMNS = [
+  { header: "Registration ID", key: "registration_id" },
+  { header: "Full Name", key: "full_name" },
+  { header: "Email", key: "email" },
+  { header: "Phone", key: "phone" },
+  { header: "College", key: "college" },
+  { header: "Department", key: "department" },
+  { header: "Year", key: "year" },
+  { header: "Team Name", key: "team_name" },
+  { header: "Team Size", key: "team_size" },
+  { header: "Members", key: "members" },
+  { header: "Type", key: "registration_type" },
+  { header: "Status", key: "status" },
+  { header: "Payment Status", key: "payment_status" },
+  { header: "Amount (INR)", key: "amount" },
+  { header: "UPI Txn ID", key: "txn_id" },
+  { header: "Verified By", key: "verified_by" },
+  { header: "Verified At", key: "verified_at" },
+  { header: "Created At", key: "created_at" },
 ];
 
-// Column letters for the patchable fields (1-based, A=1 … Q=17).
-const PATCH_COLS = { status: "L", payment_status: "M", txn_id: "O", verified_by: "P", verified_at: "Q" };
+const HEADERS = COLUMNS.map(function (c) { return c.header; });
+
+/** 1-based column index for each patchable field, derived from COLUMNS. */
+function colIndex_(key) {
+  for (var i = 0; i < COLUMNS.length; i++) {
+    if (COLUMNS[i].key === key) return i + 1;
+  }
+  return -1;
+}
+
+const PATCHABLE = ["status", "payment_status", "txn_id", "verified_by", "verified_at"];
+
+/** Run this once from the editor to create both spreadsheets. */
+function setup() {
+  var online = getSpreadsheet_("ONLINE");
+  var onsite = getSpreadsheet_("ONSITE");
+  Logger.log("Online  spreadsheet: " + online.getUrl());
+  Logger.log("On-site spreadsheet: " + onsite.getUrl());
+  return { online: online.getUrl(), onsite: onsite.getUrl() };
+}
 
 function doGet(e) {
-  const ss = getSpreadsheet_();
-  const out = { ok: true, url: ss.getUrl(), tabs: [TAB_ONLINE, TAB_ONSITE] };
-  return json_(out);
+  return json_({
+    ok: true,
+    online: getSpreadsheet_("ONLINE").getUrl(),
+    onsite: getSpreadsheet_("ONSITE").getUrl(),
+  });
 }
 
 function doPost(e) {
-  let data;
+  var data;
   try {
     data = JSON.parse(e.postData.contents);
   } catch (err) {
-    return json_({ ok: false, error: "invalid json" }, 400);
+    return json_({ ok: false, error: "invalid json" });
   }
-  if (data.token !== TOKEN) return json_({ ok: false, error: "unauthorized" }, 403);
+  if (data.token !== TOKEN) return json_({ ok: false, error: "unauthorized" });
 
-  const ss = getSpreadsheet_();
-  const tab = data.registration_type === "ONSITE" ? TAB_ONSITE : TAB_ONLINE;
-  const sheet = ensureTab_(ss, tab);
+  var ss = getSpreadsheet_(data.registration_type);
+  var sheet = ensureTab_(ss);
 
   if (data.action === "update") {
-    const rowIdx = findRow_(sheet, data.registration_id);
-    if (rowIdx < 0) return json_({ ok: true, updated: false });
-    for (const key in data.patch || {}) {
-      if (!(key in PATCH_COLS)) continue;
-      const value = data.patch[key] === null ? "" : String(data.patch[key]);
-      sheet.getRange(rowIdx, PATCH_COLS[key].charCodeAt(0) - 64).setValue(value);
+    var existing = findRow_(sheet, data.registration_id);
+    if (existing < 0) return json_({ ok: true, updated: false });
+    var patch = data.patch || {};
+    for (var key in patch) {
+      if (PATCHABLE.indexOf(key) === -1) continue;
+      var col = colIndex_(key);
+      if (col < 0) continue;
+      var value = patch[key] === null || patch[key] === undefined ? "" : String(patch[key]);
+      sheet.getRange(existing, col).setValue(value);
     }
     return json_({ ok: true, updated: true });
   }
 
-  // Default: append (or overwrite the row if the registration id exists).
-  const rowIdx = findRow_(sheet, data.registration_id);
-  const values = HEADERS.map((h) => (data[h] === undefined || data[h] === null ? "" : String(data[h])));
-  if (rowIdx >= 0) sheet.getRange(rowIdx, 1, 1, HEADERS.length).setValues([values]);
-  else sheet.appendRow(values);
-  return json_({ ok: true, spreadsheetUrl: ss.getUrl(), tab, row: rowIdx >= 0 ? rowIdx : sheet.getLastRow() });
+  // Default: append, or overwrite in place if the registration id is already
+  // present, so a retried webhook never duplicates a team.
+  var values = COLUMNS.map(function (c) {
+    var v = data[c.key];
+    return v === undefined || v === null ? "" : String(v);
+  });
+  var rowIdx = findRow_(sheet, data.registration_id);
+  if (rowIdx >= 0) {
+    sheet.getRange(rowIdx, 1, 1, COLUMNS.length).setValues([values]);
+  } else {
+    sheet.appendRow(values);
+    rowIdx = sheet.getLastRow();
+  }
+  return json_({ ok: true, spreadsheetUrl: ss.getUrl(), row: rowIdx });
 }
 
-function getSpreadsheet_() {
-  const props = PropertiesService.getScriptProperties();
-  const id = props.getProperty("spreadsheetId");
-  let ss = null;
+/** ONSITE → the on-site spreadsheet; anything else → the online one. */
+function getSpreadsheet_(registrationType) {
+  var isOnsite = String(registrationType).toUpperCase() === "ONSITE";
+  var prop = isOnsite ? "spreadsheetIdOnsite" : "spreadsheetIdOnline";
+  var name = isOnsite ? SPREADSHEET_NAME_ONSITE : SPREADSHEET_NAME_ONLINE;
+
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty(prop);
+  var ss = null;
   if (id) {
     try { ss = SpreadsheetApp.openById(id); } catch (err) { ss = null; }
   }
   if (!ss) {
-    ss = SpreadsheetApp.create(SPREADSHEET_NAME);
-    props.setProperty("spreadsheetId", ss.getId());
-    const def = ss.getSheetByName("Sheet1");
-    if (def) ss.deleteSheet(def);
-    ensureTab_(ss, TAB_ONLINE);
-    ensureTab_(ss, TAB_ONSITE);
+    ss = SpreadsheetApp.create(name);
+    props.setProperty(prop, ss.getId());
+    var def = ss.getSheetByName("Sheet1");
+    var tab = ensureTab_(ss);
+    if (def && def.getSheetId() !== tab.getSheetId()) ss.deleteSheet(def);
   }
   return ss;
 }
 
-function ensureTab_(ss, name) {
-  let sheet = ss.getSheetByName(name);
-  if (!sheet) sheet = ss.insertSheet(name);
+function ensureTab_(ss) {
+  var sheet = ss.getSheetByName(TAB_NAME);
+  if (!sheet) sheet = ss.insertSheet(TAB_NAME);
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
   }
   return sheet;
 }
 
 function findRow_(sheet, registrationId) {
-  const lastRow = sheet.getLastRow();
+  var lastRow = sheet.getLastRow();
   if (lastRow < 2) return -1;
-  const values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  for (let i = 0; i < values.length; i++) {
+  var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < values.length; i++) {
     if (String(values[i][0]) === String(registrationId)) return i + 2;
   }
   return -1;
 }
 
-function json_(obj, status) {
-  const out = ContentService.createTextOutput(JSON.stringify(obj));
+function json_(obj) {
+  var out = ContentService.createTextOutput(JSON.stringify(obj));
   out.setMimeType(ContentService.MimeType.JSON);
-  if (status) out.setContent(JSON.stringify(obj)); // status unused; kept simple
   return out;
 }
