@@ -72,32 +72,58 @@ async function createPgliteAdapter(): Promise<DbAdapter> {
 
 async function createPgAdapter(): Promise<DbAdapter> {
   const { Pool } = await import("pg");
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 8 });
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 8,
+    connectionTimeoutMillis: 8000,
+    idleTimeoutMillis: 30_000,
+    keepAlive: true,
+  });
+  // pg emits 'error' on idle pooled clients whose socket died server-side;
+  // without a handler the event is uncaught and crashes the worker (1101).
+  pool.on("error", () => {
+    /* socket already closed; next checkout opens a fresh connection */
+  });
+
+  const isConnError = (err: unknown): boolean => {
+    const msg = (err as Error)?.message ?? "";
+    return /proxy request failed|connect|ECONNRESET|socket/i.test(msg);
+  };
 
   const query: QueryFn = async <T = QueryResultRow>(text: string, params?: unknown[]) => {
-    const res = await pool.query(text, params as unknown[]);
-    return { rows: res.rows as unknown as T[], rowCount: res.rowCount ?? undefined };
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const res = await pool.query(text, params as unknown[]);
+        return { rows: res.rows as unknown as T[], rowCount: res.rowCount ?? undefined };
+      } catch (err) {
+        if (attempt === 0 && isConnError(err)) continue;
+        throw err;
+      }
+    }
   };
 
   const transaction: DbAdapter["transaction"] = async <T>(fn: (q: QueryFn) => Promise<T>) => {
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-      let result: T;
+    for (let attempt = 0; ; attempt++) {
+      let client: import("pg").PoolClient | undefined;
       try {
+        client = await pool.connect();
+        await client.query("BEGIN");
         const q: QueryFn = async <U = QueryResultRow>(text: string, params?: unknown[]) => {
-          const res = await client.query(text, params as unknown[]);
+          const res = await client!.query(text, params as unknown[]);
           return { rows: res.rows as unknown as U[], rowCount: res.rowCount ?? undefined };
         };
-        result = await fn(q);
+        const result = await fn(q);
         await client.query("COMMIT");
+        client.release();
+        return result;
       } catch (err) {
-        await client.query("ROLLBACK").catch(() => {});
+        if (client) {
+          await client.query("ROLLBACK").catch(() => {});
+          client.release(true); // destroy: socket may be dead
+        }
+        if (attempt === 0 && isConnError(err)) continue;
         throw err;
       }
-      return result;
-    } finally {
-      client.release();
     }
   };
 
