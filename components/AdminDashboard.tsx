@@ -349,20 +349,20 @@ export function AdminDashboard({
                 <input type="email" className="field" value={onspot.email}
                   onChange={(e) => setOnspot({ ...onspot, email: e.target.value })} required />
               </Field>
-              <Field label="Phone (optional)" error={onspotErrors.phone}>
+              <Field label="Phone" error={onspotErrors.phone}>
                 <input type="tel" className="field" value={onspot.phone}
-                  onChange={(e) => setOnspot({ ...onspot, phone: e.target.value })} />
+                  onChange={(e) => setOnspot({ ...onspot, phone: e.target.value })} required />
               </Field>
-              <Field label="College (optional)" error={onspotErrors.college}>
+              <Field label="College" error={onspotErrors.college}>
                 <input className="field" value={onspot.college}
-                  onChange={(e) => setOnspot({ ...onspot, college: e.target.value })} />
+                  onChange={(e) => setOnspot({ ...onspot, college: e.target.value })} required />
               </Field>
-              <Field label="Department (optional)" error={onspotErrors.department}>
+              <Field label="Department" error={onspotErrors.department}>
                 <input className="field" value={onspot.department}
-                  onChange={(e) => setOnspot({ ...onspot, department: e.target.value })} />
+                  onChange={(e) => setOnspot({ ...onspot, department: e.target.value })} required />
               </Field>
-              <Field label="Year (optional)" error={onspotErrors.year}>
-                <select className="field" value={onspot.year}
+              <Field label="Year" error={onspotErrors.year}>
+                <select className="field" value={onspot.year} required
                   onChange={(e) => setOnspot({ ...onspot, year: e.target.value })}>
                   <option value="">—</option>
                   {["1", "2", "3", "4", "5+"].map((y) => (

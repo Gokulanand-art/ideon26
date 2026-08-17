@@ -25,10 +25,11 @@ const phoneRegex = /^[+]?[\d\s().-]{7,20}$/;
  * and email are the primary contact). The fee is never accepted from the
  * client — the server always computes team_size × fee_per_head.
  *
- * The public form intentionally collects ONLY the essentials: leader name,
- * leader email, team size and member names. The optional profile fields
- * (phone / college / department / year) are kept for admin/organizer use and
- * default to empty strings when not provided.
+ * The public form collects the leader's contact and academic details (phone,
+ * college, department, year) alongside the team composition — organizers need
+ * them to contact teams and to report participation per college/department.
+ * Team name remains optional; teams that do not pick one are identified by
+ * their registration id.
  */
 export const registerSchema = z.object({
   full_name: z
@@ -45,28 +46,20 @@ export const registerSchema = z.object({
   phone: z
     .string()
     .trim()
+    .min(1, "Phone number is required.")
     .max(20, "Phone number is too long.")
-    .regex(phoneRegex, "Please enter a valid phone number.")
-    .optional()
-    .or(z.literal(""))
-    .default(""),
+    .regex(phoneRegex, "Please enter a valid phone number."),
   college: z
     .string()
     .trim()
-    .max(200, "College name is too long.")
-    .optional()
-    .or(z.literal(""))
-    .default(""),
+    .min(2, "College name must be at least 2 characters.")
+    .max(200, "College name is too long."),
   department: z
     .string()
     .trim()
-    .max(200, "Department is too long.")
-    .optional()
-    .or(z.literal(""))
-    .default(""),
-  year: z
-    .enum([...YEARS, ""], { error: "Please select your year of study." })
-    .default(""),
+    .min(2, "Department must be at least 2 characters.")
+    .max(200, "Department is too long."),
+  year: z.enum(YEARS, { error: "Please select your year of study." }),
   team_name: z
     .string()
     .trim()

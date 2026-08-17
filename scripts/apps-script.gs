@@ -40,7 +40,6 @@ const COLUMNS = [
   { header: "College", key: "college" },
   { header: "Department", key: "department" },
   { header: "Year", key: "year" },
-  { header: "Team Name", key: "team_name" },
   { header: "Team Size", key: "team_size" },
   { header: "Members", key: "members" },
   { header: "Type", key: "registration_type" },
@@ -166,7 +165,27 @@ function getSpreadsheet_(registrationType) {
 function ensureTab_(ss) {
   var sheet = ss.getSheetByName(TAB_NAME);
   if (!sheet) sheet = ss.insertSheet(TAB_NAME);
-  if (sheet.getLastRow() === 0) {
+
+  // Rewrite the header row whenever it does not match COLUMNS, so that adding
+  // or removing a column takes effect on an existing sheet instead of leaving
+  // the old headers sitting above differently-shaped rows.
+  var width = Math.max(sheet.getLastColumn(), HEADERS.length);
+  var current = sheet.getLastRow() === 0
+    ? []
+    : sheet.getRange(1, 1, 1, width).getValues()[0];
+  var matches = current.length >= HEADERS.length;
+  for (var i = 0; matches && i < HEADERS.length; i++) {
+    if (String(current[i]) !== HEADERS[i]) matches = false;
+  }
+  // Any stale trailing columns (from a removed field) must be blank.
+  for (var j = HEADERS.length; matches && j < current.length; j++) {
+    if (String(current[j]) !== "") matches = false;
+  }
+
+  if (!matches) {
+    if (width > HEADERS.length) {
+      sheet.getRange(1, HEADERS.length + 1, 1, width - HEADERS.length).clearContent();
+    }
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     sheet.setFrozenRows(1);
     sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");

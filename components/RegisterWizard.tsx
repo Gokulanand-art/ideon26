@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { config } from "@/lib/config";
+import { YEARS } from "@/lib/validation";
 
 interface Props {
   feePerHead: number;
@@ -26,7 +27,14 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<Mode>(initialMode ?? "ONLINE");
-  const [leader, setLeader] = useState({ name: "", email: "" });
+  const [leader, setLeader] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    college: "",
+    department: "",
+    year: "",
+  });
   const [teamSize, setTeamSize] = useState<2 | 3 | 4>(2);
   const [members, setMembers] = useState<string[]>(["", ""]);
   const [errors, setErrors] = useState<Errors>({});
@@ -58,6 +66,13 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
     if (leader.name.trim().length < 2) e.name = "Team leader name must be at least 2 characters.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leader.email.trim()))
       e.email = "Please enter a valid email address.";
+    // Mirrors phoneRegex in lib/validation.ts; the server re-checks all of these.
+    if (!/^[+]?[\d\s().-]{7,20}$/.test(leader.phone.trim()))
+      e.phone = "Please enter a valid phone number.";
+    if (leader.college.trim().length < 2) e.college = "College name must be at least 2 characters.";
+    if (leader.department.trim().length < 2)
+      e.department = "Department must be at least 2 characters.";
+    if (!leader.year) e.year = "Please select your year of study.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -105,6 +120,10 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
         body: JSON.stringify({
           full_name: leader.name.trim(),
           email: leader.email.trim(),
+          phone: leader.phone.trim(),
+          college: leader.college.trim(),
+          department: leader.department.trim(),
+          year: leader.year,
           registration_type: mode,
           team_size: teamSize,
           member_names: members.slice(0, memberSlots).map((m) => m.trim()),
@@ -265,6 +284,60 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
                   placeholder="ada@example.com"
                 />
               </Field>
+              <Field label="Phone number" id="leader-phone" error={errorFor("phone")}>
+                <input
+                  id="leader-phone"
+                  type="tel"
+                  inputMode="tel"
+                  className="field"
+                  autoComplete="tel"
+                  value={leader.phone}
+                  onChange={(e) => setLeader({ ...leader, phone: e.target.value })}
+                  aria-invalid={errorFor("phone") ? true : undefined}
+                  placeholder="98765 43210"
+                />
+              </Field>
+              <Field label="College" id="leader-college" error={errorFor("college")}>
+                <input
+                  id="leader-college"
+                  className="field"
+                  autoComplete="organization"
+                  value={leader.college}
+                  onChange={(e) => setLeader({ ...leader, college: e.target.value })}
+                  aria-invalid={errorFor("college") ? true : undefined}
+                  placeholder={config.collegeName}
+                />
+              </Field>
+              <Field label="Department" id="leader-department" error={errorFor("department")}>
+                <input
+                  id="leader-department"
+                  className="field"
+                  value={leader.department}
+                  onChange={(e) => setLeader({ ...leader, department: e.target.value })}
+                  aria-invalid={errorFor("department") ? true : undefined}
+                  placeholder="e.g. CSBS, AIML, CSE"
+                />
+              </Field>
+              <Field label="Year of study" id="leader-year" error={errorFor("year")}>
+                <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Year of study">
+                  {YEARS.map((y) => (
+                    <button
+                      key={y}
+                      type="button"
+                      role="radio"
+                      aria-checked={leader.year === y}
+                      onClick={() => setLeader({ ...leader, year: y })}
+                      className={`rounded-lg border px-2 py-3 text-center transition-colors ${
+                        leader.year === y
+                          ? "border-signal bg-signal/10 shadow-[0_0_0_1px_rgba(56,189,248,0.3)]"
+                          : "border-line-strong bg-panel hover:border-mut"
+                      }`}
+                    >
+                      <span className="block font-mono text-sm font-bold text-fg">{y}</span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
             </div>
           </section>
         )}
@@ -382,6 +455,22 @@ export function RegisterWizard({ feePerHead, onlineLeft, onsiteLeft, initialMode
               <div className="flex items-center justify-between px-5 py-3.5">
                 <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">EMAIL</dt>
                 <dd className="font-mono text-xs text-fg">{leader.email.trim()}</dd>
+              </div>
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">PHONE</dt>
+                <dd className="font-mono text-xs text-fg">{leader.phone.trim()}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-5 py-3.5">
+                <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">COLLEGE</dt>
+                <dd className="text-right text-sm text-fg">{leader.college.trim()}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-5 py-3.5">
+                <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">DEPARTMENT</dt>
+                <dd className="text-right text-sm text-fg">{leader.department.trim()}</dd>
+              </div>
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">YEAR</dt>
+                <dd className="text-sm font-medium text-fg">{leader.year}</dd>
               </div>
               <div className="flex items-center justify-between px-5 py-3.5">
                 <dt className="font-mono text-[11px] tracking-[0.14em] text-dim">TEAM SIZE</dt>

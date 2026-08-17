@@ -19,21 +19,55 @@ describe("registerSchema", () => {
     }
   });
 
-  it("accepts a minimal public payload (leader name + email + size + members only)", () => {
+  it("requires the leader's contact and academic details", () => {
     const r = registerPayloadSchema.safeParse({
       full_name: "Gokulanand",
       email: "goku@example.com",
       team_size: 4,
       member_names: ["Ada", "Grace", "Katherine"],
     });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      const paths = r.error.issues.map((i) => i.path[0]);
+      expect(paths).toContain("phone");
+      expect(paths).toContain("college");
+      expect(paths).toContain("department");
+      expect(paths).toContain("year");
+    }
+  });
+
+  it("accepts a complete public payload and defaults the mode to ONLINE", () => {
+    const r = registerPayloadSchema.safeParse({
+      full_name: "Gokulanand",
+      email: "goku@example.com",
+      phone: "98765 43210",
+      college: "Excel Engineering College",
+      department: "CSBS",
+      year: "3",
+      team_size: 4,
+      member_names: ["Ada", "Grace", "Katherine"],
+    });
     expect(r.success).toBe(true);
     if (r.success) {
-      expect(r.data.phone).toBe("");
-      expect(r.data.college).toBe("");
-      expect(r.data.department).toBe("");
-      expect(r.data.year).toBe("");
       expect(r.data.registration_type).toBe("ONLINE");
+      // Team name stays optional — teams without one are identified by reg id.
+      expect(r.data.team_name).toBeUndefined();
     }
+  });
+
+  it("rejects a blank or malformed phone number", () => {
+    const base = {
+      full_name: "Gokulanand",
+      email: "goku@example.com",
+      college: "Excel Engineering College",
+      department: "CSBS",
+      year: "3",
+      team_size: 2,
+      member_names: ["Ada"],
+    };
+    expect(registerPayloadSchema.safeParse({ ...base, phone: "" }).success).toBe(false);
+    expect(registerPayloadSchema.safeParse({ ...base, phone: "abc" }).success).toBe(false);
+    expect(registerPayloadSchema.safeParse({ ...base, phone: "9876543210" }).success).toBe(true);
   });
 
   it("rejects an invalid email", () => {
