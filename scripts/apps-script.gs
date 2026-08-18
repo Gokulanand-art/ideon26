@@ -107,8 +107,31 @@ function doPost(e) {
     return json_({ ok: true, cleared: cleared });
   }
 
-  var ss = getSpreadsheet_(data.registration_type);
-  var sheet = ensureTab_(ss);
+  // Read-only inventory of both sheets: row count plus the registration ids
+  // present. Used to verify a clear actually emptied them.
+  if (data.action === "list") {
+    var out = {};
+    var kinds = ["ONLINE", "ONSITE"];
+    for (var k = 0; k < kinds.length; k++) {
+      var tab2 = ensureTab_(getSpreadsheet_(kinds[k]));
+      var lastRow = tab2.getLastRow();
+      var ids = [];
+      if (lastRow > 1) {
+        var col = tab2.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (var m = 0; m < col.length; m++) ids.push(String(col[m][0]));
+      }
+      out[kinds[k]] = { rows: Math.max(0, lastRow - 1), ids: ids };
+    }
+    return json_({ ok: true, sheets: out });
+  }
+
+  var ss, sheet;
+  try {
+    ss = getSpreadsheet_(data.registration_type);
+    sheet = ensureTab_(ss);
+  } catch (err) {
+    return json_({ ok: false, error: String(err && err.message ? err.message : err) });
+  }
 
   if (data.action === "update") {
     var existing = findRow_(sheet, data.registration_id);
@@ -140,9 +163,20 @@ function doPost(e) {
   return json_({ ok: true, spreadsheetUrl: ss.getUrl(), row: rowIdx });
 }
 
-/** ONSITE → the on-site spreadsheet; anything else → the online one. */
+/**
+ * ONSITE → the on-site spreadsheet, ONLINE → the online one.
+ *
+ * Anything else throws rather than quietly falling back to online. A silent
+ * default is how on-site rows end up in the online sheet: one payload with a
+ * missing or misspelled registration_type and the row lands in the wrong
+ * file with nothing to show it went astray.
+ */
 function getSpreadsheet_(registrationType) {
-  var isOnsite = String(registrationType).toUpperCase() === "ONSITE";
+  var type = String(registrationType == null ? "" : registrationType).toUpperCase();
+  if (type !== "ONLINE" && type !== "ONSITE") {
+    throw new Error("unknown registration_type: " + JSON.stringify(registrationType));
+  }
+  var isOnsite = type === "ONSITE";
   var prop = isOnsite ? "spreadsheetIdOnsite" : "spreadsheetIdOnline";
   var name = isOnsite ? SPREADSHEET_NAME_ONSITE : SPREADSHEET_NAME_ONLINE;
 
