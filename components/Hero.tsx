@@ -93,6 +93,35 @@ export function Hero({ stats }: { stats: Stats | null }) {
               <span className="font-mono text-xs text-mut">Teams of 2–4</span>
             </div>
 
+            {/* Headline facts from the brochure. The prize is the strongest
+                draw, so it leads and carries the gold accent; each item is
+                dropped when its value is blank rather than left dangling. */}
+            {(config.eventPrize || config.eventDate || config.eventCertificate) && (
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                {config.eventPrize && (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/[0.08] px-4 py-2">
+                    <span aria-hidden="true">🏆</span>
+                    <span className="font-mono text-xs font-bold tracking-[0.12em] text-gold">
+                      {config.eventPrize.toUpperCase()}
+                    </span>
+                  </span>
+                )}
+                {config.eventDate && (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4 py-2 font-mono text-xs text-mut">
+                    <span aria-hidden="true">📅</span>
+                    {config.eventDate}
+                    {config.eventTime ? ` · ${config.eventTime}` : ""}
+                  </span>
+                )}
+                {config.eventCertificate && (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4 py-2 font-mono text-xs text-mut">
+                    <span aria-hidden="true">📜</span>
+                    Certificate provided
+                  </span>
+                )}
+              </div>
+            )}
+
             {onlineOpen && onlineLeft <= 5 && (
               <p className="font-mono text-[11px] tracking-[0.1em] text-gold" role="status">
                 ONLY {onlineLeft} ONLINE SEAT{onlineLeft === 1 ? "" : "S"} LEFT
