@@ -299,9 +299,9 @@ export function AdminDashboard({
             >
               + On-spot registration
             </button>
-            {/* One download per channel, mirroring the two Google Sheets,
-                plus a combined list. Plain links so the browser handles the
-                download and the CSV never passes through client memory. */}
+            {/* One download per channel plus a combined list. Plain links so
+                the browser handles the download and the CSV never passes
+                through client memory. */}
             <a
               href="/api/admin/export?channel=online"
               className="btn btn-ghost px-4 py-2.5 text-sm"

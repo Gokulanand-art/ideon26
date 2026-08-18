@@ -78,11 +78,6 @@ export const config = {
   // Public site
   publicUrl: env("PUBLIC_URL", "http://localhost:3000"),
 
-  // Google Sheets sync (optional) via a Google Apps Script webhook. Enabled
-  // when SHEETS_WEBHOOK_URL is set; SHEETS_WEBHOOK_TOKEN is the shared secret
-  // the webhook checks on every request.
-  sheetsWebhookUrl: env("SHEETS_WEBHOOK_URL", ""),
-  sheetsWebhookToken: env("SHEETS_WEBHOOK_TOKEN", ""),
 } as const;
 
 export type Config = typeof config;

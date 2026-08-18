@@ -7,7 +7,6 @@ import { broadcastStats } from "./realtime";
 import { getStats } from "./stats";
 import { RegistrationError } from "./registration";
 import type { AdminAction, RegistrationStatus } from "./validation";
-import { updateRegistrationInSheets } from "./sheets";
 
 export interface RegistrationRow {
   id: number;
@@ -133,7 +132,7 @@ export async function listRegistrations(
  * Rows for CSV export, oldest first.
  *
  * `channel` narrows to one registration type so organizers can pull the
- * online and on-spot lists separately, mirroring the two Google Sheets.
+ * online and on-spot lists separately.
  * Cancelled and rejected teams are included on purpose — an export is a
  * record of everything that happened, not a view of live seats.
  */
@@ -388,14 +387,6 @@ export async function runAdminAction(
   } catch {
     /* best-effort */
   }
-
-  // Google Sheets sync (best-effort).
-  updateRegistrationInSheets(result.registration_id, result.registration_type, {
-    status: result.status,
-    payment_status: result.payment_status,
-    txn_id: result.txn_id,
-    verified_by: result.verified_by,
-  });
 
   return result;
 }
