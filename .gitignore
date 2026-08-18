@@ -48,4 +48,3 @@ next-env.d.ts
 graphify-out/
 .env*
 wipe-registrations.mjs
-sheets-tool.mjs
