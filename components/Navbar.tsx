@@ -25,6 +25,7 @@ export function Navbar({ open }: { open: boolean }) {
     { href: "/#top", label: "Home" },
     { href: "/#about", label: "About" },
     { href: "/#domains", label: "Domains" },
+    { href: "/#rules", label: "Rules" },
     { href: "/#faq", label: "FAQ" },
   ];
 

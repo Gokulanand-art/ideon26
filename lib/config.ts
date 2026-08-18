@@ -54,6 +54,22 @@ export const config = {
     "IDEON'26 is the official project expo of Excel Engineering College, organised by the Department of Computer Science and Business System and the Department of Artificial Intelligence and Machine Learning. Student teams of 2–4 come together to build working solutions across six technology domains.",
   ),
   eventDuration: env("EVENT_DURATION", ""),
+
+  /** Competition rules, pipe-separated. Parsed into `rules` below. */
+  rulesRaw: env(
+    "EVENT_RULES",
+    "Each team must have 2\u20134 members." +
+      "|Teams should preferably demonstrate a working model or prototype." +
+      "|Teams must give a short presentation of their project.",
+  ),
+
+  /** Institutional approvals, shown in the footer. */
+  accreditation: env(
+    "COLLEGE_ACCREDITATION",
+    "Approved by AICTE, New Delhi \u00B7 Affiliated to Anna University, Chennai \u00B7 " +
+      "Accredited by NBA (AERO, AGRI, BME, CIVIL, CSE) \u00B7 NAAC A Grade (3.26) \u00B7 " +
+      "Recognised by UGC (27) \u00B7 Komarapalayam \u2013 637303",
+  ),
   eventPrize: env("EVENT_PRIZE", "Cash prize up to \u20B95,000"),
   /** Shown on the event facts table when non-empty. */
   eventCertificate: env("EVENT_CERTIFICATE", "Provided to all participants"),
@@ -123,6 +139,12 @@ export interface EventContact {
  * containing one still works; entries missing either half are dropped rather
  * than rendered as a dangling name or a bare number.
  */
+/** Rules split from `rulesRaw`; blank entries are dropped. */
+export const rules: string[] = config.rulesRaw
+  .split("|")
+  .map((r) => r.trim())
+  .filter((r) => r !== "");
+
 export const contacts: EventContact[] = config.contactsRaw
   .split("|")
   .map((entry) => {

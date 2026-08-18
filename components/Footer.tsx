@@ -19,6 +19,11 @@ export function Footer() {
               {config.collegeName} (Autonomous) — {config.departmentNames}.
               INNOVATE • BUILD • IMPACT.
             </p>
+            {config.accreditation && (
+              <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-dim/80">
+                {config.accreditation}
+              </p>
+            )}
           </div>
 
           {contacts.length > 0 && (
@@ -46,6 +51,7 @@ export function Footer() {
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-[11px] text-dim" aria-label="Footer">
             <Link href="/#about" className="hover:text-mut">About</Link>
             <Link href="/#domains" className="hover:text-mut">Domains</Link>
+            <Link href="/#rules" className="hover:text-mut">Rules</Link>
             <Link href="/#faq" className="hover:text-mut">FAQ</Link>
             <Link href="/#options" className="hover:text-mut">Registration</Link>
             <Link href="/admin/login" className="hover:text-mut">
