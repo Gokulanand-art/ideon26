@@ -29,16 +29,32 @@ const columns: CsvColumn<RegistrationRow>[] = [
   { header: "Created At", accessor: (r) => r.created_at },
 ];
 
-export async function GET() {
+/**
+ * CSV export. `?channel=online|onsite` narrows to one registration type;
+ * omitting it exports everything. The filename carries the channel so a
+ * folder of downloads stays readable.
+ */
+export async function GET(request: Request) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const rows = await getAllForExport();
+
+  const raw = new URL(request.url).searchParams.get("channel")?.toUpperCase();
+  if (raw && raw !== "ONLINE" && raw !== "ONSITE") {
+    return NextResponse.json(
+      { error: "channel must be 'online' or 'onsite'." },
+      { status: 400 },
+    );
+  }
+  const channel = raw as "ONLINE" | "ONSITE" | undefined;
+
+  const rows = await getAllForExport(channel ? { channel } : {});
   const csv = toCsv(rows, columns);
   const stamp = new Date().toISOString().slice(0, 10);
+  const slug = channel === "ONSITE" ? "onspot" : channel === "ONLINE" ? "online" : "all";
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="ideon26-registrations-${stamp}.csv"`,
+      "Content-Disposition": `attachment; filename="ideon26-${slug}-${stamp}.csv"`,
       "Cache-Control": "no-store",
     },
   });

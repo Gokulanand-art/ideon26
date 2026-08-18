@@ -129,15 +129,30 @@ export async function listRegistrations(
   };
 }
 
+/**
+ * Rows for CSV export, oldest first.
+ *
+ * `channel` narrows to one registration type so organizers can pull the
+ * online and on-spot lists separately, mirroring the two Google Sheets.
+ * Cancelled and rejected teams are included on purpose — an export is a
+ * record of everything that happened, not a view of live seats.
+ */
 export async function getAllForExport(
-  opts: { adapter?: import("./db").DbAdapter } = {},
+  opts: {
+    adapter?: import("./db").DbAdapter;
+    channel?: "ONLINE" | "ONSITE";
+  } = {},
 ): Promise<RegistrationRow[]> {
   const db = opts.adapter ?? (await getDb());
+  const where = opts.channel ? "WHERE p.registration_type = $1" : "";
+  const params = opts.channel ? [opts.channel] : [];
   const { rows } = await db.query<RegistrationRow>(
     `SELECT ${COLUMNS_SQL}
      FROM participants p
      LEFT JOIN payments pay ON pay.participant_id = p.id
+     ${where}
      ORDER BY p.created_at ASC`,
+    params,
   );
   return rows;
 }
