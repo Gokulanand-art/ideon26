@@ -8,11 +8,21 @@
  * capacity logic always stays synchronized with the database constraints.
  */
 
+/**
+ * Placeholders that were set before the details were confirmed. Treating them
+ * as unset lets the real value ship in code without having to hunt down and
+ * clear each stale variable in the hosting dashboard.
+ */
+const PLACEHOLDERS = new Set(["tba", "tbd", "n/a", "na", "-", "--"]);
+
 function env(key: string, fallback: string): string {
   // Trimmed, so a variable set to whitespace counts as unset rather than
   // overriding the fallback with a blank-looking value.
   const v = process.env[key]?.trim();
-  return v === undefined || v === "" ? fallback : v;
+  if (v === undefined || v === "" || PLACEHOLDERS.has(v.toLowerCase())) {
+    return fallback;
+  }
+  return v;
 }
 
 function intEnv(key: string, fallback: number): number {
