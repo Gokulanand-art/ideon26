@@ -14,7 +14,10 @@ import { cookies } from "next/headers";
 import { config } from "./config";
 
 const COOKIE_NAME = "hk_admin_session";
-const COOKIE_MAX_AGE = 60 * 60 * 12; // 12h
+// Cookie lifetime tracks the signed token's own expiry (SESSION_TTL_HOURS).
+// Hardcoding it meant a longer SESSION_TTL_HOURS silently did nothing: the
+// token stayed valid while the browser discarded the cookie after 12h.
+const cookieMaxAge = (): number => Math.floor(config.sessionTtlMs / 1000);
 
 function requireSecret(): string {
   if (!config.adminAuthSecret) {
@@ -85,6 +88,32 @@ export function verifySessionToken(token: string | undefined | null): { u: strin
   }
 }
 
+/**
+ * Shared-link access key: whoever holds it gets an admin session without a
+ * password, so it is deliberately long and unguessable.
+ *
+ * Derived from ADMIN_AUTH_SECRET rather than stored separately, so there is
+ * no extra secret to configure or leave unset by accident. Setting
+ * ADMIN_ACCESS_KEY overrides it. Rotate by rotating ADMIN_AUTH_SECRET, which
+ * also invalidates every existing session.
+ */
+export function adminAccessKey(): string {
+  if (config.adminAccessKey) return config.adminAccessKey;
+  if (!config.adminAuthSecret) return "";
+  return b64url(
+    createHmac("sha256", config.adminAuthSecret).update("admin-access-key-v1").digest(),
+  ).slice(0, 43);
+}
+
+/** Constant-time key comparison; hashing first keeps unequal lengths safe. */
+export function verifyAccessKey(key: string | undefined | null): boolean {
+  const expected = adminAccessKey();
+  if (!expected || !key) return false;
+  const a = createHmac("sha256", expected).update(key).digest();
+  const b = createHmac("sha256", expected).update(expected).digest();
+  return timingSafeEqual(a, b);
+}
+
 export async function setAdminCookie(username: string): Promise<void> {
   const store = await cookies();
   store.set(COOKIE_NAME, createSessionToken(username), {
@@ -92,7 +121,7 @@ export async function setAdminCookie(username: string): Promise<void> {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: COOKIE_MAX_AGE,
+    maxAge: cookieMaxAge(),
   });
 }
 

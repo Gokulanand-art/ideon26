@@ -9,9 +9,18 @@ import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ k?: string }>;
+}) {
   const admin = await getCurrentAdmin();
-  if (!admin) redirect("/admin/login");
+  if (!admin) {
+    // A shared link carries the access key; hand it to the route handler,
+    // which is the only place able to set the session cookie.
+    const { k } = await searchParams;
+    redirect(k ? `/api/admin/key?k=${encodeURIComponent(k)}` : "/admin/login");
+  }
 
   let stats = null;
   let list = null;

@@ -73,6 +73,9 @@ export const config = {
   adminPasswordHash: env("ADMIN_PASSWORD_HASH", ""),
   adminPasswordPlain: env("ADMIN_PASSWORD", ""),
   adminAuthSecret: env("ADMIN_AUTH_SECRET", ""),
+  // Optional explicit share key. Empty means "derive it from
+  // ADMIN_AUTH_SECRET" (see adminAccessKey in lib/auth.ts).
+  adminAccessKey: env("ADMIN_ACCESS_KEY", ""),
   sessionTtlMs: intEnv("SESSION_TTL_HOURS", 12) * 60 * 60 * 1000,
 
   // Public site
