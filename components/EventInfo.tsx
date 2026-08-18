@@ -1,8 +1,10 @@
 import { config } from "@/lib/config";
 
 /**
- * Event facts table — only verified information is shown. Dates, venue,
- * prizes and contact details are intentionally absent until confirmed.
+ * Event facts table — only verified information is shown. Date, time, venue,
+ * prize and certificate come from the official brochure; any of them can be
+ * blanked via its env var, in which case the row is dropped rather than shown
+ * empty.
  */
 export function EventInfo() {
   const items = [
@@ -10,12 +12,17 @@ export function EventInfo() {
     { label: "TYPE", value: config.eventType },
     { label: "ORGANIZER", value: config.collegeName },
     { label: "DEPARTMENTS", value: config.departmentNames },
+    { label: "DATE", value: config.eventDate },
+    { label: "REPORTING TIME", value: config.eventTime },
+    { label: "VENUE", value: config.eventVenue },
+    { label: "CASH PRIZE", value: config.eventPrize },
+    { label: "CERTIFICATE", value: config.eventCertificate },
     { label: "TEAM SIZE", value: "2–4 members" },
     { label: "FEE", value: `₹${config.feePerHead} per participant` },
     { label: "ONLINE CAPACITY", value: `${config.onlineCapacity} teams` },
     { label: "ON-SPOT CAPACITY", value: `${config.onsiteCapacity} teams` },
     { label: "TOTAL CAPACITY", value: `${config.totalCapacity} teams` },
-  ];
+  ].filter((it) => it.value && String(it.value).trim() !== "");
 
   return (
     <section id="info" className="scroll-mt-20 border-t border-line py-16 sm:py-20">

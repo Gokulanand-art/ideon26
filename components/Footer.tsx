@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { config } from "@/lib/config";
+import { config, contacts } from "@/lib/config";
 
 export function Footer() {
   return (
@@ -20,6 +20,28 @@ export function Footer() {
               INNOVATE • BUILD • IMPACT.
             </p>
           </div>
+
+          {contacts.length > 0 && (
+            <div>
+              <p className="font-mono text-[11px] font-semibold tracking-[0.16em] text-dim">
+                CONTACT
+              </p>
+              <ul className="mt-3 space-y-1.5">
+                {contacts.map((c) => (
+                  <li key={c.phone} className="text-xs text-dim">
+                    <span className="text-mut">{c.name}</span>{" "}
+                    {/* tel: strips spaces so the dialer gets a clean number */}
+                    <a
+                      href={`tel:${c.phone.replace(/[^+\d]/g, "")}`}
+                      className="font-mono text-fg hover:text-signal"
+                    >
+                      {c.phone}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-[11px] text-dim" aria-label="Footer">
             <Link href="/#about" className="hover:text-mut">About</Link>

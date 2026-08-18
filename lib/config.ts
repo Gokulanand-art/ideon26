@@ -9,7 +9,9 @@
  */
 
 function env(key: string, fallback: string): string {
-  const v = process.env[key];
+  // Trimmed, so a variable set to whitespace counts as unset rather than
+  // overriding the fallback with a blank-looking value.
+  const v = process.env[key]?.trim();
   return v === undefined || v === "" ? fallback : v;
 }
 
@@ -30,15 +32,21 @@ export const config = {
   eventName: env("EVENT_NAME", "IDEON'26"),
   eventType: env("EVENT_TYPE", "PROJECT EXPO 2026"),
   eventTagline: env("EVENT_TAGLINE", "Innovate. Build. Impact."),
-  eventDate: env("EVENT_DATE", "TBA"),
+  eventDate: env("EVENT_DATE", "2 September 2026"),
+  eventTime: env("EVENT_TIME", "09:30 AM"),
   eventEndDate: env("EVENT_END_DATE", ""),
-  eventVenue: env("EVENT_VENUE", ""),
+  eventVenue: env(
+    "EVENT_VENUE",
+    "Excel Engineering College, Komarapalayam \u2013 637303",
+  ),
   eventDescription: env(
     "EVENT_DESCRIPTION",
     "IDEON'26 is the official project expo of Excel Engineering College, organised by the Department of Computer Science and Business System and the Department of Artificial Intelligence and Machine Learning. Student teams of 2–4 come together to build working solutions across six technology domains.",
   ),
   eventDuration: env("EVENT_DURATION", ""),
-  eventPrize: env("EVENT_PRIZE", ""),
+  eventPrize: env("EVENT_PRIZE", "Cash prize up to \u20B95,000"),
+  /** Shown on the event facts table when non-empty. */
+  eventCertificate: env("EVENT_CERTIFICATE", "Provided to all participants"),
 
   onlineCapacity: intEnv("ONLINE_CAPACITY", 20),
   onsiteCapacity: intEnv("ONSITE_CAPACITY", 10),
@@ -78,9 +86,40 @@ export const config = {
   adminAccessKey: env("ADMIN_ACCESS_KEY", ""),
   sessionTtlMs: intEnv("SESSION_TTL_HOURS", 12) * 60 * 60 * 1000,
 
+  /**
+   * Event coordinators, as "Name:phone|Name:phone". Parsed into
+   * `contacts` below; malformed entries are dropped rather than rendered
+   * half-empty.
+   */
+  contactsRaw: env(
+    "EVENT_CONTACTS",
+    "Mrs. C. Prathipa:+91 95005 93632|Ms. C. Pavithra:+91 63802 06176|Mrs. N. Thenmozhi:+91 76958 65694",
+  ),
+
   // Public site
   publicUrl: env("PUBLIC_URL", "http://localhost:3000"),
 
 } as const;
 
 export type Config = typeof config;
+
+export interface EventContact {
+  name: string;
+  phone: string;
+}
+
+/**
+ * Coordinators parsed from `contactsRaw`. Split on the LAST colon so a name
+ * containing one still works; entries missing either half are dropped rather
+ * than rendered as a dangling name or a bare number.
+ */
+export const contacts: EventContact[] = config.contactsRaw
+  .split("|")
+  .map((entry) => {
+    const i = entry.lastIndexOf(":");
+    if (i < 1) return null;
+    const name = entry.slice(0, i).trim();
+    const phone = entry.slice(i + 1).trim();
+    return name && phone ? { name, phone } : null;
+  })
+  .filter((c): c is EventContact => c !== null);
