@@ -1,5 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { registerSchema, registerPayloadSchema, txnIdSchema } from "@/lib/validation";
+import {
+  registerSchema,
+  registerPayloadSchema,
+  txnIdSchema,
+  adminActionSchema,
+} from "@/lib/validation";
+
+describe("adminActionSchema", () => {
+  // pg hands bigint back as a string, so the dashboard posts {"id":"18"}.
+  // Before coercion this failed as "Invalid request." and verify/cancel/reject
+  // were unusable from the UI while the page still rendered fine.
+  it("accepts a numeric id sent as a string", () => {
+    const r = adminActionSchema.safeParse({ id: "18", action: "cancel" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.id).toBe(18);
+  });
+
+  it("accepts a real number", () => {
+    const r = adminActionSchema.safeParse({ id: 18, action: "verify" });
+    expect(r.success).toBe(true);
+  });
+
+  it("still rejects nonsense ids and unknown actions", () => {
+    expect(adminActionSchema.safeParse({ id: "abc", action: "verify" }).success).toBe(false);
+    expect(adminActionSchema.safeParse({ id: 0, action: "verify" }).success).toBe(false);
+    expect(adminActionSchema.safeParse({ id: -3, action: "verify" }).success).toBe(false);
+    expect(adminActionSchema.safeParse({ id: 1, action: "explode" }).success).toBe(false);
+  });
+});
 
 describe("registerSchema", () => {
   it("accepts a valid payload", () => {

@@ -58,7 +58,10 @@ const ALLOWED_STATUSES = new Set([
   "REJECTED",
 ]);
 
-const COLUMNS_SQL = `p.id, p.registration_id, p.full_name, p.email, p.phone, p.college, p.department,
+// p.id is cast because pg returns bigint as a *string*, which silently
+// contradicts `id: number` on RegistrationRow and made the dashboard post
+// {"id":"18"} to an endpoint demanding a number ("Invalid request.").
+const COLUMNS_SQL = `p.id::int AS id, p.registration_id, p.full_name, p.email, p.phone, p.college, p.department,
             p.year, p.registration_type, p.team_name, p.team_size, p.status,
             p.created_at::text AS created_at, p.updated_at::text AS updated_at,
             (SELECT string_agg(tm.member_name, ', ' ORDER BY tm.member_number)

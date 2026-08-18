@@ -134,7 +134,9 @@ export const ADMIN_ACTIONS = ["verify", "cancel", "reject"] as const;
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 
 export const adminActionSchema = z.object({
-  id: z.number().int().positive(),
+  // Coerced: ids reaching this endpoint have come back from JSON, where a
+  // driver or a client can easily turn them into strings.
+  id: z.coerce.number().int().positive(),
   action: z.enum(ADMIN_ACTIONS, { error: "Invalid action." }),
 });
 
