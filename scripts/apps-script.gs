@@ -147,8 +147,19 @@ function doPost(e) {
     return json_({ ok: true, updated: true });
   }
 
-  // Default: append, or overwrite in place if the registration id is already
-  // present, so a retried webhook never duplicates a team.
+  // Only an explicit append reaches the writing path. Anything else is a
+  // client sending an action this deployment does not implement (usually a
+  // newer server against an older script); appending in that case silently
+  // manufactures junk rows, so reject it instead.
+  if (data.action !== undefined && data.action !== "append") {
+    return json_({ ok: false, error: "unknown action: " + String(data.action) });
+  }
+  if (!data.registration_id) {
+    return json_({ ok: false, error: "registration_id is required to append" });
+  }
+
+  // Append, or overwrite in place if the registration id is already present,
+  // so a retried webhook never duplicates a team.
   var values = COLUMNS.map(function (c) {
     var v = data[c.key];
     return v === undefined || v === null ? "" : String(v);
